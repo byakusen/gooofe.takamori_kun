@@ -1,0 +1,1 @@
+# gooofe.takamori_kun
