@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>隆盛くん 〜西郷どん ものしり問答〜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Yuji+Syuku&family=Zen+Maru+Gothic:wght@500;700;900&family=Klee+One:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sumi:#1a1410;       /* 墨 */
+    --sumi2:#241c15;
+    --kin:#d9a441;        /* 金 */
+    --kin-akarui:#f2cd6b;
+    --aka:#b03a2e;        /* 朱 */
+    --aka-fuka:#7d241c;
+    --washi:#f4ead6;      /* 和紙 */
+    --washi-kage:#e7d8ba;
+    --midori:#5c7a4a;
+    --sumi-usu:rgba(244,234,214,.7);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    font-family:'Zen Maru Gothic',sans-serif;
+    background:
+      radial-gradient(ellipse at 50% -10%, #3a2c1d 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 120%, #2a1d12 0%, transparent 55%),
+      var(--sumi);
+    color:var(--washi);
+    min-height:100%;
+    display:flex;
+    flex-direction:column;
+    overflow-x:hidden;
+    position:relative;
+  }
+  /* 和紙テクスチャ風のノイズ */
+  body::before{
+    content:"";
+    position:fixed;inset:0;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0 1px, transparent 1px 3px);
+    pointer-events:none;z-index:0;
+  }
+
+  /* ヘッダー（のぼり旗風） */
+  header{
+    position:relative;z-index:2;
+    text-align:center;
+    padding:18px 16px 10px;
+    border-bottom:3px solid var(--kin);
+    background:linear-gradient(180deg, rgba(125,36,28,.35), transparent);
+  }
+  .mon{
+    display:inline-flex;align-items:center;gap:14px;
+  }
+  .mon-maru{
+    width:46px;height:46px;border-radius:50%;
+    border:3px solid var(--kin);
+    display:grid;place-items:center;
+    font-family:'Yuji Syuku',serif;font-size:24px;color:var(--kin-akarui);
+    background:radial-gradient(circle,#3a2c1d,#1a1410);
+  }
+  h1{
+    font-family:'Yuji Syuku',serif;
+    font-size:clamp(28px,4.2vw,52px);
+    color:var(--kin-akarui);
+    letter-spacing:.12em;
+    text-shadow:0 2px 0 #000,0 0 18px rgba(217,164,65,.35);
+  }
+  .sub{
+    font-size:clamp(13px,1.5vw,18px);
+    color:var(--sumi-usu);
+    margin-top:4px;letter-spacing:.18em;
+  }
+
+  /* メイン舞台 */
+  main{
+    position:relative;z-index:2;
+    flex:1;
+    width:min(1100px,94vw);
+    margin:0 auto;
+    padding:22px 0 30px;
+    display:flex;flex-direction:column;gap:20px;
+  }
+
+  /* 隆盛の語り場 */
+  .stage{
+    display:flex;align-items:flex-start;gap:22px;
+  }
+  .nobunaga{
+    flex:0 0 auto;
+    width:clamp(120px,15vw,180px);
+    text-align:center;
+  }
+  .face{
+    width:clamp(120px,15vw,180px);
+    height:clamp(120px,15vw,180px);
+    border-radius:50%;
+    overflow:hidden;
+    background:#241c15;
+    border:5px solid var(--kin);
+    box-shadow:0 0 0 4px var(--sumi),0 10px 30px rgba(0,0,0,.5);
+    position:relative;
+    transition:transform .25s;
+  }
+  .face .mouth{
+    position:absolute;inset:0;
+    width:100%;height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .face .mouth.closed{z-index:1;}
+  .face .mouth.open{z-index:2;opacity:0;}   /* ふだんは閉じた口。話すとき重ねて見せる */
+  .face.talking-open .mouth.open{opacity:1;}
+  .face.no-img .mouth{display:none;}
+  .face-fallback{
+    display:none;
+    position:absolute;inset:0;z-index:3;
+    width:100%;height:100%;
+    align-items:center;justify-content:center;
+    font-family:'Yuji Syuku',serif;
+    font-size:clamp(20px,2.6vw,32px);line-height:1.15;
+    color:var(--kin-akarui);letter-spacing:.05em;
+    background:radial-gradient(circle at 50% 38%, #3a2c1d, #1a1410);
+  }
+  .face.no-img .face-fallback{display:flex;}
+  .face.talk{} /* 話し始めの顔の動きはなし（うなずき・傾きとも無効） */
+  .name-tag{
+    margin-top:10px;font-family:'Yuji Syuku',serif;
+    font-size:clamp(16px,2vw,24px);color:var(--kin-akarui);letter-spacing:.1em;
+  }
+
+  /* 吹き出し（巻物風） */
+  .scroll{
+    flex:1;position:relative;
+    background:linear-gradient(180deg,var(--washi),var(--washi-kage));
+    color:var(--sumi);
+    border-radius:14px;
+    padding:26px 30px;
+    min-height:170px;
+    box-shadow:0 12px 34px rgba(0,0,0,.45),inset 0 0 0 3px rgba(125,36,28,.25);
+    border:2px solid var(--kin);
+  }
+  .scroll::before{ /* 吹き出しのしっぽ */
+    content:"";position:absolute;left:-18px;top:48px;
+    border-style:solid;border-width:14px 18px 14px 0;
+    border-color:transparent var(--kin) transparent transparent;
+  }
+  .scroll .answer{
+    font-family:'Klee One',serif;
+    font-size:clamp(20px,2.6vw,32px);
+    line-height:1.75;font-weight:600;
+    letter-spacing:.02em;
+  }
+  .scroll .answer .em{color:var(--aka-fuka);font-weight:700;}
+
+  /* 質問エリア */
+  .ask-zone{
+    background:rgba(36,28,21,.7);
+    border:2px solid var(--kin);
+    border-radius:14px;
+    padding:18px 20px;
+  }
+  .ask-zone .label{
+    font-size:clamp(15px,1.7vw,20px);color:var(--kin-akarui);
+    margin-bottom:12px;letter-spacing:.1em;font-weight:700;
+  }
+  .input-row{display:flex;gap:12px;flex-wrap:wrap;}
+  #q{
+    flex:1;min-width:220px;
+    font-family:'Zen Maru Gothic',sans-serif;
+    font-size:clamp(18px,2.2vw,26px);font-weight:500;
+    padding:14px 18px;border-radius:10px;border:none;
+    background:var(--washi);color:var(--sumi);
+  }
+  #q:focus{outline:3px solid var(--kin-akarui);}
+  .btn-ask{
+    font-family:'Yuji Syuku',serif;
+    font-size:clamp(18px,2.2vw,26px);
+    padding:14px 28px;border:none;border-radius:10px;cursor:pointer;
+    background:linear-gradient(180deg,var(--aka),var(--aka-fuka));
+    color:var(--washi);letter-spacing:.1em;
+    box-shadow:0 4px 0 #511712,0 6px 14px rgba(0,0,0,.4);
+    transition:transform .08s;
+  }
+  .btn-ask:active{transform:translateY(4px);box-shadow:0 1px 0 #511712;}
+
+  /* おすすめ問い */
+  .topics{margin-top:8px;}
+  .topics .t-label{font-size:clamp(13px,1.5vw,17px);color:var(--sumi-usu);margin:6px 2px 12px;letter-spacing:.08em;}
+  .chips{display:flex;flex-wrap:wrap;gap:10px;}
+  .chip{
+    font-family:'Zen Maru Gothic',sans-serif;font-weight:700;
+    font-size:clamp(15px,1.8vw,21px);
+    padding:11px 18px;border-radius:999px;cursor:pointer;
+    background:rgba(244,234,214,.08);
+    color:var(--washi);
+    border:2px solid var(--kin);
+    transition:all .15s;
+  }
+  .chip:hover{background:var(--kin);color:var(--sumi);transform:translateY(-2px);}
+
+  .panel{display:none;}
+  .panel.show{display:block;}
+
+  /* 顔のリアクション */
+  .face.seikai{box-shadow:0 0 0 4px var(--sumi),0 0 34px 6px rgba(217,164,65,.85),0 10px 30px rgba(0,0,0,.5);}
+
+  footer{
+    position:relative;z-index:2;text-align:center;
+    font-size:13px;color:rgba(244,234,214,.4);
+    padding:14px;letter-spacing:.1em;
+  }
+  @media(max-width:560px){
+    .stage{flex-direction:column;align-items:center;}
+    .scroll::before{display:none;}
+    .nobunaga{order:-1;}
+  }
+
+  /* ===== タブ ===== */
+  .tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:-2px;}
+  .tab{
+    font-family:'Yuji Syuku',serif;font-size:clamp(16px,2vw,22px);
+    padding:10px 22px;border-radius:10px 10px 0 0;cursor:pointer;
+    background:rgba(244,234,214,.08);color:var(--washi);
+    border:2px solid var(--kin);border-bottom:none;letter-spacing:.06em;transition:all .15s;
+  }
+  .tab:hover{background:rgba(217,164,65,.25);}
+  .tab.active{background:var(--kin);color:var(--sumi);}
+
+  /* ===== 年表 ===== */
+  .timeline{padding:4px 2px;}
+  .tl-item{display:flex;gap:12px;align-items:flex-start;cursor:pointer;padding:8px 10px;border-radius:10px;transition:background .15s;}
+  .tl-item:hover{background:rgba(217,164,65,.14);}
+  .tl-year{flex:0 0 auto;width:64px;text-align:right;font-family:'Yuji Syuku',serif;
+    font-size:clamp(17px,2.1vw,25px);color:var(--kin-akarui);padding-top:2px;}
+  .tl-line{flex:0 0 auto;position:relative;width:16px;align-self:stretch;}
+  .tl-dot{width:13px;height:13px;border-radius:50%;background:var(--aka);border:3px solid var(--kin);margin:7px auto 0;position:relative;z-index:2;}
+  .tl-line::before{content:"";position:absolute;left:50%;top:8px;bottom:-8px;width:3px;background:var(--kin);transform:translateX(-50%);}
+  .tl-item:last-child .tl-line::before{display:none;}
+  .tl-text{flex:1;font-size:clamp(15px,1.9vw,21px);font-weight:700;color:var(--washi);padding-top:4px;}
+
+  /* ===== 地図 ===== */
+  .map-box{background:#bcd6df;border:2px solid var(--kin);border-radius:14px;padding:8px;overflow:hidden;}
+  #saigo-map{width:100%;height:auto;display:block;touch-action:manipulation;}
+  #saigo-map .prefecture polygon,#saigo-map .prefecture path{fill:#efe3c6;stroke:#8a7553;stroke-width:1;stroke-linejoin:round;}
+  #saigo-map .pref-hl polygon,#saigo-map .pref-hl path{fill:#f3d089;}
+  .map-pin circle{fill:var(--aka);stroke:#fff;stroke-width:2.5;cursor:pointer;transition:r .1s;}
+  .map-pin.island circle{fill:#5c7a4a;}
+  .map-pin:hover circle{stroke:var(--kin-akarui);}
+  #saigo-map .pin-num{fill:#fff;font-family:'Zen Maru Gothic',sans-serif;font-weight:900;font-size:15px;text-anchor:middle;dominant-baseline:central;pointer-events:none;}
+  #saigo-map .map-label{fill:#241c15;font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:15px;text-anchor:middle;paint-order:stroke;stroke:#fff;stroke-width:3.5px;pointer-events:none;}
+  .map-legend{font-size:clamp(13px,1.6vw,17px);color:var(--sumi-usu);margin-top:8px;letter-spacing:.04em;line-height:1.6;}
+
+  /* ===== クイズ ===== */
+  .quiz-q{font-size:clamp(18px,2.3vw,26px);font-weight:700;color:var(--kin-akarui);margin-bottom:14px;line-height:1.5;}
+  .quiz-opts{display:flex;flex-direction:column;gap:10px;}
+  .quiz-opt{font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:clamp(16px,2vw,22px);
+    padding:12px 18px;border-radius:10px;cursor:pointer;text-align:left;
+    background:var(--washi);color:var(--sumi);border:2px solid var(--kin);transition:all .12s;}
+  .quiz-opt:hover:not(:disabled){background:var(--kin-akarui);}
+  .quiz-opt.correct{background:#5f9a4c;color:#fff;border-color:#3f7d2f;}
+  .quiz-opt.wrong{background:#b84d42;color:#fff;border-color:#7d241c;}
+  .quiz-opt:disabled{cursor:default;}
+  .quiz-bar{display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:10px;flex-wrap:wrap;}
+  .quiz-progress{font-size:clamp(14px,1.7vw,19px);color:var(--sumi-usu);}
+  .btn-next{font-family:'Yuji Syuku',serif;font-size:clamp(16px,2vw,22px);padding:10px 24px;border:none;border-radius:10px;cursor:pointer;
+    background:linear-gradient(180deg,var(--aka),var(--aka-fuka));color:var(--washi);box-shadow:0 4px 0 #511712;letter-spacing:.08em;transition:transform .08s;}
+  .btn-next:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 #511712;}
+  .btn-next:disabled{opacity:.35;cursor:default;}
+  .quiz-result{text-align:center;font-size:clamp(20px,2.6vw,30px);font-weight:700;color:var(--kin-akarui);padding:14px 6px;line-height:1.6;}
+
+  /* ===== 人物相関図 ===== */
+  .rel-box{background:#241c15;border:2px solid var(--kin);border-radius:14px;padding:8px;overflow:hidden;}
+  #rel-map{width:100%;height:auto;display:block;touch-action:manipulation;}
+  .rel-line{stroke-width:3;opacity:.5;transition:all .15s;}
+  .rel-line.active{opacity:1;stroke-width:6;}
+  .rel-line.dim{opacity:.12;}
+  .rel-node{cursor:pointer;}
+  .rel-node .rel-circ{fill:#f4ead6;stroke-width:4;transition:all .12s;}
+  .rel-node:hover .rel-circ{filter:brightness(1.06);}
+  .rel-node .rel-name{fill:#241c15;font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:15px;text-anchor:middle;dominant-baseline:central;pointer-events:none;}
+  .rel-node .rel-role{fill:#f2cd6b;font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:12.5px;text-anchor:middle;pointer-events:none;}
+  .rel-node.active .rel-circ{stroke-width:7;}
+  .rel-node.dim{opacity:.32;}
+  .rel-center circle{fill:#d9a441;stroke:#7d241c;stroke-width:4;}
+  .rel-center text{fill:#241c15;font-family:'Yuji Syuku',serif;font-weight:700;text-anchor:middle;}
+  .rel-legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:10px;font-size:clamp(13px,1.6vw,17px);color:var(--washi);letter-spacing:.03em;}
+  .rel-legend span{display:inline-flex;align-items:center;gap:6px;}
+  .rel-legend i{width:15px;height:15px;border-radius:50%;display:inline-block;flex:0 0 auto;}
+
+</style>
+</head>
+<body>
+  <header>
+    <div class="mon">
+      <span class="mon-maru">西</span>
+      <div>
+        <h1>隆盛くん</h1>
+        <div class="sub">ばくまつ・めいじ ものしり もんどう</div>
+      </div>
+      <span class="mon-maru">郷</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="stage">
+      <div class="nobunaga">
+        <div class="face" id="face">
+          <img class="mouth closed" src="https://raw.githubusercontent.com/byakusen/gooofe.takamori_kun/main/takamori.png" alt="西郷隆盛"
+               onerror="this.closest('.face').classList.add('no-img');">
+          <img class="mouth open" src="https://raw.githubusercontent.com/byakusen/gooofe.takamori_kun/main/takamori2.png" alt="" aria-hidden="true">
+          <span class="face-fallback">西<br>郷<br>隆<br>盛</span>
+        </div>
+        <div class="name-tag">西郷隆盛</div>
+      </div>
+      <div class="scroll">
+        <div class="answer" id="answer"></div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="qa">きく</button>
+      <button class="tab" data-tab="timeline">年表</button>
+      <button class="tab" data-tab="map">地図</button>
+      <button class="tab" data-tab="rel">相関図</button>
+      <button class="tab" data-tab="quiz">クイズ</button>
+    </div>
+
+    <div class="panel show" id="panel-qa">
+      <div class="ask-zone">
+        <div class="label">▼ 隆盛くんに きいてみよう</div>
+        <div class="input-row">
+          <input id="q" type="text" placeholder="しつもんを 入力してね（れい：西南戦争ってなに？）" autocomplete="off">
+          <button class="btn-ask" id="askBtn">きく</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-timeline">
+      <div class="ask-zone">
+        <div class="label">▼ 西郷隆盛の 年表（年をタップすると くわしく話すぞ）</div>
+        <div class="timeline" id="timeline"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-map">
+      <div class="ask-zone">
+        <div class="label">▼ 西郷ゆかりの地（ピンをタップしてみよ）</div>
+        <div class="map-box">
+          <svg id="saigo-map" viewBox="35 535 685 565" xmlns="http://www.w3.org/2000/svg">
+<g class="svg-map" transform="matrix(1.028807, 0, 0, 1.028807, -47.544239, -28.806583)">
+<g class="prefectures" transform="matrix(1, 0, 0, 1, 6, 18)">
+<g class="kagoshima kyushu kyushu-okinawa prefecture" data-code="46" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(96.000000, 17.000000)">
+        <polygon points="23 949 26 951 23 952"/>
+        <polygon points="33 960 32 954 39 950 48 956 47 961 41 965 35 964"/>
+        <polygon points="64 953 64 958 59 959 58 952 62 949 63 939 70 929 71 938"/>
+        <polygon points="38 844 43 848 52 844 57 850 56 852 61 859 66 864 65 869 70 871 73 880 80 881 80 888 78 891 75 890 70 896 75 899 73 903 76 902 69 905 66 910 50 918 50 913 55 910 59 898 53 889 54 884 48 881 53 879 54 883 57 884 61 878 54 872 50 874 44 887 46 898 51 901 49 906 43 907 40 901 27 901 28 897 25 896 27 894 22 890 31 890 35 880 32 871 27 867 30 860 28 848 31 846 35 848"/>
+        <polygon points="31 837 34 836 33 838"/>
+        <polygon points="27 848 24 842 29 840 30 844"/>
+        <polygon points="4 868 6 865 7 867 2 875 0 874"/>
+        <polygon points="12 864 9 861 14 861"/>
+        <polygon points="284 149 280 150 279 146 289 144"/>
+        <polygon points="301 126 301 118 306 118 305 122 309 126 308 129 303 132 300 128"/>
+        <polygon points="363 98 360 99 359 97 365 93"/>
+        <polygon points="344 90 331 98 335 101 330 104 327 103 329 107 323 102 325 99 316 97 324 97 325 95 321 94 335 88 337 90 339 86 344 85 342 89 344 87 345 89 347 82 349 88"/>
+        <polygon points="324 108 322 106 320 108 318 101 323 102 322 105 328 107 325 109 326 107"/>
+        <polygon points="355 12 352 16 352 13"/>
+        <polygon points="361 1 363 0 365 4"/>
+      </g>
+<g class="miyazaki kyushu kyushu-okinawa prefecture" data-code="45" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(152.000000, 824.000000)">
+        <polygon points="36 0 38 1 43 0 48 5 56 5 59 1 63 2 63 7 65 7 54 17 53 21 56 22 52 23 51 25 53 26 47 34 41 51 39 74 34 79 32 91 27 89 22 84 24 81 24 74 17 73 14 64 9 62 10 57 5 52 0 45 1 43 22 41 19 35 23 30 18 23 18 16 23 14 32 0"/>
+      </g>
+<g class="oita kyushu kyushu-okinawa prefecture" data-code="44" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(163.000000, 771.000000)">
+        <polygon points="0 34 3 29 0 26 2 24 1 19 5 13 12 9 19 10 20 3 33 7 38 0 47 4 49 10 46 18 43 17 43 20 35 22 36 26 40 28 56 27 50 36 56 36 53 38 56 40 61 38 62 41 57 41 55 45 65 49 59 49 61 51 57 54 60 55 54 56 54 60 52 60 52 55 48 54 45 58 37 58 32 53 27 54 25 53 21 49 22 43 15 30 9 30 10 36 8 39"/>
+      </g>
+<g class="kumamoto kyushu kyushu-okinawa prefecture" data-code="43" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(115.000000, 800.000000)">
+        <path d="M8,37 L13,38 L13,48 L5,57 L1,58 L1,52 L5,51 L0,50 L4,40 L3,37 L8,37 Z M20,47 L14,47 L12,43 L19,39 L26,39 L23,47 L20,47 Z M24,34 L26,34 L26,38 L23,38 L24,34 Z M38,67 L33,61 L24,65 L19,61 L32,46 L30,40 L32,41 L31,39 L37,34 L26,34 L34,28 L35,23 L27,15 L26,10 L31,10 L30,7 L35,3 L39,4 L40,0 L48,5 L56,10 L58,7 L57,1 L63,1 L70,14 L69,20 L73,24 L69,24 L60,38 L55,40 L55,47 L60,54 L56,59 L59,65 L38,67 Z"/>
+      </g>
+<g class="nagasaki kyushu kyushu-okinawa prefecture" data-code="42" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(44.000000, 700.000000)">
+        <path d="M53,1 L55,0 L57,2 L54,5 L55,9 L49,15 L48,19 L51,18 L49,22 L51,21 L48,25 L48,20 L46,22 L46,19 L45,22 L42,20 L44,20 L45,15 L47,15 L45,14 L49,10 L46,8 L48,3 L52,3 L53,1 Z M46,29 L43,35 L37,36 L40,22 L41,24 L45,25 L44,22 L45,26 L48,25 L46,29 Z M67,59 L68,61 L64,63 L60,59 L62,59 L61,56 L64,53 L67,55 L66,57 L68,58 L67,59 Z M28,110 L25,115 L26,110 L23,107 L26,106 L26,102 L28,102 L30,94 L28,105 L33,106 L30,108 L28,106 L28,110 Z M24,112 L21,111 L21,109 L23,111 L22,108 L24,112 Z M19,113 L20,110 L19,116 L16,111 L19,113 Z M6,118 L9,117 L10,119 L12,115 L16,125 L9,124 L9,129 L0,126 L1,124 L3,126 L4,125 L2,125 L5,122 L4,116 L6,118 Z M65,80 L62,81 L64,78 L65,80 Z M67,82 L70,84 L67,86 L67,82 Z M29,88 L31,85 L33,87 L29,88 Z M54,76 L51,77 L55,74 L54,76 Z M66,86 L64,89 L66,96 L73,98 L72,102 L78,109 L86,112 L79,117 L92,118 L94,123 L92,130 L82,134 L80,128 L85,124 L84,122 L79,121 L71,123 L68,129 L60,134 L64,129 L63,126 L65,127 L67,123 L64,125 L63,118 L59,117 L56,111 L59,100 L63,104 L62,108 L63,106 L66,108 L64,115 L75,118 L71,112 L72,107 L69,103 L66,105 L65,99 L62,99 L62,97 L58,100 L60,98 L57,96 L57,93 L57,95 L53,93 L57,87 L54,86 L55,83 L60,82 L60,85 L65,84 L66,86 Z M49,88 L48,92 L42,94 L47,91 L45,89 L48,84 L52,84 L54,81 L55,84 L49,88 Z M15,115 L15,113 L18,116 L15,118 L15,115 Z M64,101 L63,104 L62,101 L64,98 L64,101 Z"/>
+      </g>
+<g class="saga kyushu kyushu-okinawa prefecture" data-code="41" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(108.000000, 773.000000)">
+        <polygon points="15 6 28 6 34 12 41 10 40 16 32 21 30 28 25 23 19 29 22 39 14 36 8 29 9 25 2 23 0 16 2 13 5 17 4 13 6 9 2 6 3 4 6 6 6 0 7 2 11 2 12 7"/>
+      </g>
+<g class="fukuoka kyushu kyushu-okinawa prefecture" data-code="40" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(123.000000, 752.000000)">
+        <polygon points="40 53 32 48 31 52 27 51 22 55 23 58 18 58 18 52 15 49 17 42 25 37 26 31 19 33 13 27 0 27 7 23 3 20 10 15 13 21 20 20 21 15 17 17 14 14 19 15 23 12 25 5 35 3 36 0 42 1 38 5 41 5 43 2 46 4 53 0 49 8 52 10 50 11 55 22 60 22 59 29 52 28 45 32 41 38 42 43 40 45 43 48"/>
+      </g>
+<g class="kochi shikoku prefecture" data-code="39" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(251.000000, 765.000000)">
+        <path d="M61,0 L74,6 L80,4 L81,12 L88,13 L86,17 L88,21 L94,22 L87,41 L75,25 L65,21 L55,23 L55,21 L56,24 L44,28 L50,28 L44,29 L42,32 L41,29 L38,33 L39,38 L37,44 L34,44 L30,52 L25,53 L25,61 L22,64 L25,70 L21,66 L14,68 L9,65 L5,67 L6,61 L10,60 L9,57 L6,57 L8,54 L5,41 L9,44 L15,36 L20,33 L16,24 L27,23 L30,13 L37,4 L61,0 Z M1,69 L0,70 L0,67 L1,69 Z"/>
+      </g>
+<g class="ehime shikoku prefecture" data-code="38" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(225.000000, 737.000000)">
+        <path d="M34,21 L31,20 L35,17 L34,21 Z M55,6 L51,6 L55,0 L57,3 L55,6 Z M60,5 L61,5 L60,7 L57,6 L60,5 Z M58,10 L54,12 L55,7 L60,8 L58,10 Z M32,85 L25,83 L25,86 L23,86 L24,81 L27,82 L21,76 L24,76 L22,72 L25,72 L22,71 L23,69 L20,67 L24,70 L28,66 L28,63 L24,63 L27,60 L19,60 L21,57 L19,56 L22,51 L16,50 L8,56 L0,57 L35,37 L41,18 L50,15 L48,11 L51,10 L59,24 L70,20 L80,22 L84,18 L89,20 L87,28 L63,32 L56,41 L53,51 L42,52 L46,61 L41,64 L35,72 L31,69 L34,82 L32,85 Z"/>
+      </g>
+<g class="kagawa shikoku prefecture" data-code="37" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(308.000000, 724.000000)">
+        <path d="M6,33 L1,31 L4,21 L0,17 L6,20 L19,10 L26,13 L30,9 L31,14 L34,11 L37,14 L36,17 L45,22 L44,25 L31,23 L22,30 L15,27 L6,33 Z M27,5 L25,4 L29,4 L27,5 Z M40,0 L42,0 L40,8 L38,7 L38,5 L35,9 L35,5 L31,3 L40,0 Z"/>
+      </g>
+<g class="tokushima shikoku prefecture" data-code="36" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(312.000000, 744.000000)">
+        <path d="M50,2 L52,0 L51,4 L50,2 Z M41,2 L49,0 L49,3 L52,4 L48,13 L55,20 L50,24 L57,26 L38,36 L33,43 L27,42 L25,38 L27,34 L20,33 L19,25 L13,27 L0,21 L2,13 L11,7 L18,10 L27,3 L40,5 L41,2 Z"/>
+      </g>
+<g class="yamaguchi chugoku prefecture" data-code="35" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(168.000000, 710.000000)">
+        <path d="M45,0 L47,6 L43,11 L45,15 L50,15 L48,20 L50,24 L56,22 L58,24 L61,20 L60,16 L64,14 L64,21 L66,23 L67,29 L72,31 L72,36 L69,36 L70,44 L65,46 L65,54 L61,48 L57,48 L52,42 L47,44 L50,41 L46,38 L35,42 L32,39 L30,42 L29,40 L27,42 L27,38 L25,43 L21,45 L19,43 L16,45 L15,40 L9,36 L3,43 L3,36 L0,32 L4,27 L1,21 L4,17 L10,17 L5,15 L7,12 L16,14 L17,17 L24,17 L30,15 L29,12 L41,1 L43,2 L45,0 Z M64,54 L59,56 L62,52 L64,54 Z M75,50 L83,48 L78,50 L77,53 L73,50 L69,53 L67,48 L70,46 L75,50 Z M18,15 L18,13 L22,14 L18,15 Z M51,46 L48,46 L51,43 L51,46 Z"/>
+      </g>
+<g class="hiroshima chugoku prefecture" data-code="34" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(230.000000, 687.000000)">
+        <path d="M73,40 L72,42 L69,40 L72,43 L70,42 L68,47 L63,45 L63,42 L54,44 L51,48 L39,49 L37,53 L30,55 L28,53 L25,56 L26,53 L23,47 L25,45 L17,44 L9,51 L10,54 L5,52 L4,46 L2,44 L2,37 L0,35 L5,30 L7,24 L6,22 L12,17 L20,19 L22,16 L27,18 L35,16 L32,11 L38,8 L45,0 L58,2 L65,4 L68,7 L66,14 L70,19 L69,24 L73,40 Z M45,53 L43,56 L41,53 L46,51 L45,53 Z M21,54 L20,50 L23,51 L22,59 L19,59 L21,56 L17,51 L21,54 Z M15,48 L16,50 L12,52 L15,48 Z M35,57 L33,56 L36,56 L35,57 Z M24,58 L26,58 L25,61 L28,61 L26,63 L20,62 L23,56 L26,56 L24,58 Z M59,49 L59,52 L56,49 L59,49 Z M57,50 L53,52 L54,50 L57,50 Z M60,44 L62,45 L59,47 L60,44 Z"/>
+      </g>
+<g class="okayama chugoku prefecture" data-code="33" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(295.000000, 673.000000)">
+        <polygon points="58 8 59 14 51 22 52 29 50 32 54 38 53 41 46 39 49 42 43 49 34 48 39 49 36 53 34 52 33 57 27 55 25 58 23 52 23 55 19 51 15 55 10 52 12 56 8 54 4 38 5 33 1 28 3 21 0 18 1 15 8 14 7 10 14 10 13 7 15 6 18 0 25 2 29 7 39 1 38 3 45 6 46 12"/>
+      </g>
+<g class="shimane chugoku prefecture" data-code="32" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(211.000000, 610.000000)">
+        <path d="M74,14 L78,13 L75,17 L72,15 L73,19 L71,16 L74,14 Z M79,16 L77,19 L77,15 L79,14 L81,17 L79,16 Z M83,5 L88,0 L93,5 L92,9 L89,9 L91,11 L86,12 L83,5 Z M2,100 L10,98 L25,84 L35,78 L41,70 L52,65 L55,59 L53,55 L70,51 L76,46 L79,49 L87,48 L84,50 L82,51 L88,59 L87,68 L79,70 L81,73 L77,79 L64,77 L57,85 L51,88 L54,93 L46,95 L41,93 L39,96 L31,94 L25,99 L26,101 L24,107 L19,112 L21,114 L17,116 L18,120 L15,124 L13,122 L7,124 L5,120 L7,115 L2,115 L0,111 L4,106 L2,100 Z"/>
+      </g>
+<g class="tottori chugoku prefecture" data-code="31" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(288.000000, 658.000000)">
+        <polygon points="7 33 0 31 4 25 2 22 10 20 11 11 5 3 7 2 9 6 15 8 23 4 34 6 55 5 64 0 71 17 71 21 65 23 53 27 52 21 45 18 46 16 36 22 32 17 25 15 22 21 20 22 21 25 14 25 15 29 8 30"/>
+      </g>
+<g class="wakayama kinki prefecture" data-code="30" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(385.000000, 737.000000)">
+        <path d="M41,32 L44,38 L49,41 L45,46 L46,50 L38,55 L37,59 L35,59 L36,56 L19,51 L14,44 L17,41 L9,37 L4,30 L0,30 L3,25 L0,24 L6,21 L1,18 L5,16 L4,14 L8,14 L0,6 L2,3 L5,6 L31,0 L35,9 L31,10 L25,17 L30,24 L28,30 L41,32 Z M49,23 L49,26 L44,29 L44,26 L49,23 Z"/>
+      </g>
+<g class="nara kinki prefecture" data-code="29" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(410.000000, 712.000000)">
+        <polygon points="24 48 19 51 19 54 17 54 17 57 16 57 3 55 5 49 0 42 6 35 10 34 6 25 8 20 6 11 11 0 17 5 21 2 25 5 27 3 29 7 26 8 28 9 27 13 36 18 28 24 31 29 29 30 31 33 29 37 30 44 29 47"/>
+      </g>
+<g class="hyogo kinki prefecture" data-code="28" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(345.000000, 655.000000)">
+        <path d="M31,90 L23,93 L23,88 L20,89 L20,86 L38,67 L39,69 L32,79 L35,88 L31,90 Z M3,59 L4,56 L0,50 L2,47 L1,40 L9,32 L8,26 L14,24 L14,20 L7,3 L16,0 L33,1 L32,5 L36,10 L41,9 L42,11 L42,17 L36,17 L35,23 L42,28 L47,26 L49,33 L59,35 L58,40 L55,41 L56,45 L62,48 L60,49 L62,60 L59,62 L53,60 L40,66 L25,56 L11,57 L11,53 L8,58 L5,56 L3,59 Z"/>
+      </g>
+<g class="osaka kinki prefecture" data-code="27" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(387.000000, 695.000000)">
+        <polygon points="16 0 24 8 28 5 27 8 31 9 34 17 29 28 31 37 29 42 3 48 0 45 7 44 14 37 17 28 19 30 17 22 20 20 18 9 20 8 14 5 13 1"/>
+      </g>
+<g class="kyoto kinki prefecture" data-code="26" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(377.000000, 649.000000)">
+        <polygon points="44 63 41 55 37 54 38 51 34 54 26 46 27 41 17 39 15 32 10 34 3 29 4 23 10 23 10 17 9 15 4 16 0 11 1 7 3 10 2 8 19 0 23 7 15 14 18 15 20 11 20 15 24 17 23 21 25 18 27 19 25 14 31 11 32 14 31 20 34 25 46 27 51 32 48 46 51 56 55 56 59 62 60 66 58 68 54 65 50 68"/>
+      </g>
+<g class="shiga kinki prefecture" data-code="25" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(423.000000, 655.000000)">
+        <path d="M20,0 L27,3 L28,9 L31,9 L34,16 L35,19 L31,29 L33,30 L34,40 L30,50 L24,53 L17,50 L16,55 L13,56 L9,50 L5,50 L2,40 L5,26 L0,21 L3,17 L6,18 L9,11 L12,13 L18,10 L18,7 L21,8 L20,0 Z M20,13 L20,16 L18,13 L14,16 L16,24 L8,32 L8,36 L5,42 L7,45 L9,36 L15,35 L16,31 L25,25 L26,21 L20,13 Z"/>
+      </g>
+<g class="mie kinki prefecture" data-code="24" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(426.000000, 683.000000)">
+        <polygon points="8 95 3 92 0 86 1 86 1 83 3 83 8 80 8 77 13 76 14 73 13 66 15 62 13 59 15 58 12 53 20 47 11 42 12 38 10 37 13 36 11 32 10 28 13 27 14 22 21 25 27 22 31 12 30 2 36 0 43 7 48 15 42 16 43 20 36 32 35 40 51 47 53 52 56 51 55 55 50 55 55 56 55 61 51 62 53 60 50 58 49 60 43 61 46 57 42 57 39 62 39 60 36 63 34 61 34 64 32 62 25 66 22 68 23 73 21 72 22 70 18 73 22 77 20 77 22 80 19 78 20 81 13 85"/>
+      </g>
+<g class="aichi chubu prefecture" data-code="23" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(469.000000, 673.000000)">
+        <polygon points="42 46 18 52 20 47 23 49 31 43 33 46 35 43 34 40 28 37 26 41 18 40 14 37 16 29 12 40 16 45 13 45 9 41 10 36 8 33 8 28 12 21 5 25 0 17 1 11 5 3 15 0 21 8 26 10 33 8 39 12 46 8 47 14 52 11 60 13 50 33 42 38"/>
+      </g>
+<g class="shizuoka chubu prefecture" data-code="22" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(511.000000, 659.000000)">
+        <polygon points="73 14 77 14 77 27 83 31 81 36 85 42 85 46 78 55 77 61 70 65 64 59 67 45 65 41 66 38 72 37 62 31 55 33 51 38 53 41 44 45 42 54 36 61 38 65 25 61 0 60 0 52 8 47 18 27 33 17 33 5 37 0 40 8 39 19 44 20 48 29 53 27 52 20 56 12 61 17"/>
+      </g>
+<g class="gifu chubu prefecture" data-code="21" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(450.000000, 608.000000)">
+        <polygon points="66 4 69 10 64 20 67 24 66 28 60 35 55 35 53 40 59 43 64 50 62 53 68 59 66 63 68 66 65 66 67 70 65 73 58 77 52 73 45 75 40 73 34 65 24 68 20 76 19 82 12 75 6 77 4 76 8 66 7 63 4 56 1 56 0 50 5 41 11 44 12 42 25 41 28 37 22 29 24 23 29 13 26 10 30 5 34 7 35 11 44 0 47 2 52 0 52 2 56 0"/>
+      </g>
+<g class="nagano chubu prefecture" data-code="20" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(503.000000, 572.000000)">
+        <polygon points="68 18 59 21 60 23 55 27 54 34 57 39 66 39 67 45 64 47 66 53 63 54 66 57 66 63 70 65 71 70 68 72 64 69 58 71 53 66 43 77 46 80 43 82 45 87 41 92 41 104 26 114 18 112 13 115 12 109 14 106 12 102 15 102 13 99 15 95 9 89 11 86 6 79 0 76 2 71 7 71 13 64 14 60 11 56 16 46 13 40 19 32 18 29 21 28 22 17 27 10 27 7 34 8 34 13 36 14 44 10 48 12 48 7 53 2 60 0 63 2 63 7 68 11"/>
+      </g>
+<g class="yamanashi chubu prefecture" data-code="19" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(546.000000, 638.000000)">
+        <polygon points="2 21 0 16 3 14 0 11 10 0 15 5 21 3 25 6 28 4 39 7 43 15 48 18 47 27 38 35 26 38 21 33 17 41 18 48 13 50 9 41 4 40 5 29"/>
+      </g>
+<g class="fukui chubu prefecture" data-code="18" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(408.000000, 618.000000)">
+        <polygon points="40 0 46 8 56 9 61 14 66 13 64 19 70 27 67 31 54 32 53 34 47 31 42 40 35 37 36 45 33 44 33 47 27 50 24 48 21 55 18 54 15 58 3 56 0 51 1 45 3 49 10 46 6 49 13 50 15 47 13 48 13 45 19 47 17 45 20 43 18 40 26 41 25 35 28 33 29 38 31 39 32 32 25 19 34 6 34 2"/>
+      </g>
+<g class="ishikawa chubu prefecture" data-code="17" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(448.000000, 541.000000)">
+        <path d="M37,26 L34,23 L41,23 L37,26 Z M28,77 L31,80 L26,90 L21,91 L16,86 L6,85 L0,77 L15,62 L26,44 L27,33 L25,29 L25,24 L22,23 L27,10 L52,0 L56,1 L57,5 L51,6 L50,15 L46,14 L39,22 L37,18 L34,19 L32,28 L38,30 L41,26 L41,36 L33,38 L31,48 L28,50 L30,54 L28,57 L29,61 L27,69 L28,77 Z"/>
+      </g>
+<g class="toyama chubu prefecture" data-code="16" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(475.000000, 575.000000)">
+        <polygon points="41 37 31 33 27 35 27 33 22 35 19 33 10 44 9 40 5 38 1 43 0 35 2 27 1 23 3 20 1 16 4 14 6 4 14 2 11 8 23 15 31 11 33 3 43 0 47 3 50 14 49 25 46 26 47 29"/>
+      </g>
+<g class="niigata chubu prefecture" data-code="15" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(518.000000, 476.000000)">
+        <path d="M7,113 L4,102 L0,99 L14,94 L23,87 L30,87 L45,75 L55,60 L60,46 L79,34 L80,36 L79,35 L85,28 L94,0 L102,3 L102,10 L111,16 L109,20 L101,23 L101,31 L98,39 L101,44 L104,46 L95,56 L97,65 L89,65 L88,68 L79,69 L78,72 L80,76 L76,82 L81,87 L80,101 L73,94 L71,98 L67,99 L68,104 L65,105 L65,108 L53,114 L53,107 L48,103 L48,98 L45,96 L38,98 L33,103 L33,108 L29,106 L21,110 L19,109 L19,104 L12,103 L12,106 L7,113 Z M36,46 L28,47 L35,38 L33,35 L30,37 L30,31 L34,23 L43,14 L39,30 L46,31 L43,40 L36,46 Z"/>
+      </g>
+<g class="kanagawa kanto prefecture" data-code="14" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(584.000000, 656.000000)">
+        <polygon points="10 0 24 6 28 11 28 6 30 6 27 4 30 2 44 9 40 13 36 12 39 16 36 16 36 23 42 26 38 30 39 33 35 33 36 28 33 24 26 22 15 25 11 28 12 34 10 34 4 30 4 17 0 17 9 9"/>
+      </g>
+<g class="tokyo kanto prefecture" data-code="13" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(585.000000, 642.000000)">
+        <path d="M49,173 L49,178 L44,171 L49,173 Z M34,113 L32,115 L29,114 L31,111 L34,113 Z M11,104 L13,106 L11,107 L11,104 Z M18,98 L16,96 L18,92 L18,98 Z M22,75 L22,69 L26,70 L26,76 L22,75 Z M48,7 L49,12 L47,16 L41,15 L43,19 L39,20 L43,20 L43,23 L29,16 L26,18 L29,20 L27,20 L27,25 L23,20 L9,14 L4,11 L0,3 L3,0 L18,4 L23,8 L30,5 L30,9 L36,6 L40,7 L42,5 L48,7 Z"/>
+      </g>
+<g class="chiba kanto prefecture" data-code="12" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(627.000000, 629.000000)">
+        <polygon points="5 29 7 25 6 20 6 13 0 0 8 10 19 15 37 11 37 8 55 20 55 24 45 24 34 35 32 57 19 61 7 75 0 71 5 69 3 66 4 63 3 58 5 53 1 49 4 45 7 46 7 42 13 39 18 33 11 26 6 30"/>
+      </g>
+<g class="saitama kanto prefecture" data-code="11" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(573.000000, 618.000000)">
+        <polygon points="48 4 49 5 51 12 54 11 54 11 60 24 60 31 54 29 52 31 48 30 42 33 42 29 35 32 30 28 15 24 12 27 1 24 0 19 16 10 21 0 32 2 38 6"/>
+      </g>
+<g class="gunma kanto prefecture" data-code="10" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(557.000000, 570.000000)">
+        <polygon points="64 52 54 54 48 50 37 48 32 58 16 67 12 65 12 59 9 56 12 55 10 49 13 47 12 41 3 41 0 36 1 29 6 25 5 23 14 20 26 14 26 11 29 10 28 5 32 4 34 0 41 7 49 9 47 12 50 14 47 17 46 26 54 29 48 42 53 49 62 48"/>
+      </g>
+<g class="tochigi kanto prefecture" data-code="9" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(603.000000, 563.000000)">
+        <polygon points="19 60 18 59 16 55 7 56 2 49 8 36 0 33 1 24 4 21 1 19 3 16 28 0 40 3 46 7 47 13 47 24 48 27 45 29 47 39 44 46 33 48 30 53 27 53 26 57"/>
+      </g>
+<g class="ibaraki kanto prefecture" data-code="8" stroke-linejoin="round" fill="#EEEEEE" fill-rule="nonzero" stroke="#000000" stroke-width="1.0" transform="translate(622.000000, 575.000000)">
+        <polygon points="5 54 5 54 2 55 0 48 7 45 8 41 11 41 14 36 25 34 28 27 26 17 29 15 28 12 28 1 38 10 44 4 44 0 54 5 46 29 47 35 44 42 46 52 51 61 49 63 51 66 52 62 60 74 42 62 42 65 24 69 13 64"/>
+      </g>
+</g>
+</g>
+          </svg>
+        </div>
+        <div class="map-legend">赤いピン＝西郷ゆかりの地／緑のピン＝島流しの島々。<br>地図は西（薩摩）から東（江戸＝東京）まで。黄色い県が、とくにゆかりの深い土地じゃ。</div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-rel">
+      <div class="ask-zone">
+        <div class="label">▼ 西郷をめぐる人々（タップすると 間がらを話すぞ）</div>
+        <div class="rel-box">
+          <svg id="rel-map" viewBox="0 0 700 580" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+        <div class="rel-legend">
+          <span><i style="background:#d9a441"></i>恩人・師</span>
+          <span><i style="background:#5c7a4a"></i>盟友・味方</span>
+          <span><i style="background:#c77fa0"></i>家族</span>
+          <span><i style="background:#5b86b3"></i>好敵手</span>
+          <span><i style="background:#b03a2e"></i>対立</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-quiz">
+      <div class="ask-zone">
+        <div class="label">▼ 西郷どんクイズ（全10問）</div>
+        <div id="quiz-area"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer>クラスで楽しむ 幕末・明治もんどうアプリ／答えは小学生むけにやさしくまとめています</footer>
+
+<script>
+// ===== 西郷隆盛の知識（小学4年生むけ・隆盛口調） =====
+// 薩摩のことばで「おい」は「わたし」のこと。
+// キーワードに当てはまる問いが来たら、その答えを返す。
+const KB = [
+  // ===== 生い立ち・名前・人物 =====
+  {
+    keys:["生まれ","うまれ","いつ生","何年生","誕生","加治屋町","かじやまち","どこで生"],
+    a:"おいが生まれたのは1828年、薩摩国(いまの鹿児島県)の鹿児島城下、下加治屋町(しもかじやまち)というところでな。父は下級の藩士・西郷吉兵衛、その長男としてこの世に生をうけた。じつはこの加治屋町からは、おいだけでなく、大久保利通や東郷平八郎など、のちに名を残す者が大ぜい出ておるのじゃ。"
+  },
+  {
+    keys:["幼名","ようみょう","小吉","名前","なまえ","吉之助","きちのすけ","名のり","諱","いみな"],
+    a:"子どものころの名は「小吉(こきち)」、ふだんは「吉之助(きちのすけ)」と呼ばれた。本当の名(諱)を隆盛(たかもり)という。じつは隆盛は父と同じ名でな。新政府で位をもらうとき、友の吉井がうっかり父の名で届けてしもうたのが、そのまま広まったのよ。なんとも、おかしな話じゃろう。"
+  },
+  {
+    keys:["南洲","なんしゅう","号","別の名","ごう"],
+    a:"おいは「南洲(なんしゅう)」という号(ごう、別の呼び名)を使うておった。「南の洲(す)」――南国の薩摩に生まれた者らしい名であろう。おいの言葉を集めた本も『南洲翁遺訓(なんしゅうおういくん)』と呼ばれておる。今でも、この号でおいを覚えてくれる人が多いのじゃ。"
+  },
+  {
+    keys:["西郷どん","せごどん","せどん","あだ名","愛称","呼び名","よびな"],
+    a:"薩摩では、おいを「西郷どん(せごどん)」と親しみをこめて呼んでくれた。「どん」は「殿(どの)」がなまったことばで、したしみと尊敬の両方がこもっておる。今の世でもその呼び名で覚えてくれる人が多いと聞く。ありがたいことじゃのう。"
+  },
+  {
+    keys:["出身","しゅっしん","どこの人","薩摩","さつま","鹿児島","かごしま"],
+    a:"おいは薩摩国(さつまのくに)、いまの鹿児島県の出身じゃ。薩摩は日本のいちばん南、海のむこうの世界に近い土地でな。そのぶん新しいものに敏感で、つよい武士の気風が根づいておった。その薩摩の力が、幕末の世を大きく動かしたのよ。"
+  },
+  {
+    keys:["身分","みぶん","下級","かきゅう","貧しい","びんぼう","下っぱ","家がら"],
+    a:"おいの家は、薩摩藩のなかでも下のほうの身分の武士(下級藩士)でな。決して豊かではなく、子どものころから貧しさを味わった。じゃが、身分が低くても志さえ高ければ世のために働ける――そう信じて生きてきた。生まれより、こころざしが大事じゃ。"
+  },
+  {
+    keys:["子ども時代","こども","小さいころ","少年","幼い","どんな子"],
+    a:"小さいころのおいは、体は大きいが、おっとりとした子であったという。よく相撲をとり、川で泳ぎ、仲間と『郷中(ごじゅう)』という薩摩独特のしくみの中で、年上から年下へと教えあいながら育った。仲間を思いやり、まとめる力は、このころに身についたのかもしれぬのう。"
+  },
+  {
+    keys:["腕","うで","けが","傷","きず","刀が握れ","刀がにぎれ","右腕"],
+    a:"おいは13のころ、友だちのけんかの仲裁(ちゅうさい)に入って、刀で右腕の筋を切られてしもうた。それからは刀をうまく握れなくなり、武術はあきらめて、学問と相撲で身を立てようと決めたのじゃ。ひとつの道がとざされても、べつの道がひらける。そういうものよ。"
+  },
+  {
+    keys:["体格","たいかく","大きい","おおきい","でかい","身長","体重","大男","背"],
+    a:"おいは、なかなかの大男でな。背は六尺(およそ180センチ)近く、目もぎょろりと大きかったと伝わる。当時の人からすれば、見上げるほどの体じゃ。その大きな体と、どっしりとした人がらが、人々に安心感をあたえたのかもしれぬのう。"
+  },
+  {
+    keys:["学問","がくもん","勉強","べんきょう","陽明学","ようめいがく","禅","ぜん","近思録"],
+    a:"刀が握れなくなってから、おいは学問に打ちこんだ。陽明学(ようめいがく)を学び、お寺で禅(ぜん)もくんだ。『近思録(きんしろく)』という本を、大久保利通ら若い仲間と輪になって読む会もつくった。学ぶ仲間とのつながりが、のちに世を動かす力になったのよ。"
+  },
+  // ===== 家族 =====
+  {
+    keys:["父","ちち","おとう","吉兵衛","きちべえ"],
+    a:"おいの父は西郷吉兵衛(きちべえ)じゃ。薩摩藩の下級の役人でな、決して豊かではなかったが、まじめに勤めをはたす人であった。おいが若いころに父も母も次々に亡くなり、おいは一家の大黒柱として、弟や妹たちを支えねばならなんだ。苦労が、人を強くするのじゃ。"
+  },
+  {
+    keys:["母","はは","おかあ","マサ"],
+    a:"おいの母はマサという。やさしい母であったが、おいが20代の半ばに父とあいついで亡くなってしもうた。残された弟妹を、おいが親がわりとなって育てた。貧しいながらも家族で支えあったあの日々が、おいの人をいつくしむ心を育ててくれたのじゃ。"
+  },
+  {
+    keys:["弟","おとうと","従道","つぐみち","じゅうどう","信吾","小兵衛","吉二郎"],
+    a:"おいには三人の弟がおった。すぐ下の吉二郎は戊辰戦争で戦死し、いちばん下の小兵衛は西南戦争で命を落とした。三番目の弟・従道(つぐみち)は、おいとちがう道を歩み、明治政府の重い役につき、海軍をひきいる人物となった。兄弟それぞれの生き方があるものよ。"
+  },
+  {
+    keys:["西郷従道","さいごうつぐみち","従道だけ","弟は政府"],
+    a:"弟の従道(つぐみち)は、おいが西南戦争で政府に弓を引いたあとも、明治政府に残って大臣や元帥(げんすい)をつとめた。兄と弟が、敵味方に分かれてしまったわけじゃ。それでも従道は、生涯おいを兄として敬ってくれたと聞く。せつなくも、ありがたい話じゃのう。"
+  },
+  {
+    keys:["大山巌","おおやまいわお","従弟","いとこ","親戚","しんせき"],
+    a:"おいの従弟(いとこ)に大山巌(おおやまいわお)という者がおる。のちに陸軍の元帥となり、日露戦争でも活躍した大人物じゃ。おいの肖像画は、本人の写真がないため、この大山や弟の従道の顔をもとに描かれたともいわれておる。血のつながりとは、ふしぎなものよのう。"
+  },
+  {
+    keys:["妻","つま","お嫁","結婚","けっこん","糸子","イト","須賀","正室"],
+    a:"おいは生涯に三度、妻をめとった。最初の妻・須賀とは、おいが貧しく島へ流されるなどして別れることになった。最後の妻はイト(糸子)という、しっかり者でな、おいの留守をよく守ってくれた。家のことを任せられる人がいてこそ、男は外で働けるのじゃ。"
+  },
+  {
+    keys:["愛加那","あいかな","島の妻","奄美の妻","しまづま"],
+    a:"奄美大島へ流されていたころ、おいは島の娘・愛加那(あいかな)と夫婦になった。二人の間には菊次郎(きくじろう)と菊草(きくそう)という子も生まれた。じゃが、薩摩へもどるときに島に残してゆかねばならなんだ。会えぬ家族を思う辛さは、今も胸の奥に残っておる。"
+  },
+  {
+    keys:["子ども","こども","息子","むすこ","菊次郎","きくじろう","寅太郎","とらたろう","子は"],
+    a:"おいには何人かの子がおった。奄美で生まれた菊次郎(きくじろう)は、のちに京都市長までつとめた立派な人物となった。あとつぎの寅太郎(とらたろう)は、おいの名誉が回復されたのち侯爵(こうしゃく)となった。親の歩んだ道を、子らがそれぞれに受けついでくれたのじゃ。"
+  },
+  // ===== 島津斉彬・薩摩藩 =====
+  {
+    keys:["島津斉彬","なりあきら","斉彬","殿様","とのさま","ばってき","抜擢","見いだ"],
+    a:"おいの一生を変えたお方が、薩摩の名君・島津斉彬(しまづなりあきら)さまじゃ。下級の身分にすぎぬおいを見いだし、そば近くに取り立ててくださった。新しい世界に目を向けた開明的な殿で、おいはそのお考えを学び、世のために働く道を教わった。まことの恩人よ。"
+  },
+  {
+    keys:["庭方","にわかた","直接仕え","そばに仕え","お庭方役"],
+    a:"斉彬さまは、おいを「庭方役(にわかたやく)」という、殿のそば近くで秘密の用をこなす役につけてくださった。身分の低いおいが、藩主のすぐそばで天下のことを語りあえる――これほどのよろこびはなかった。あのころに学んだことが、おいの一生の土台になったのじゃ。"
+  },
+  {
+    keys:["斉彬の死","斉彬が死","殿様が死","急死","殉死","じゅんし"],
+    a:"頼みにしていた斉彬さまが、ある日とつぜん亡くなられた。おいは悲しみのあまり、あとを追って死のうとさえした。じゃが、僧の月照(げっしょう)らに「斉彬さまの志をつぐのがそなたの務めじゃ」と説きふせられ、思いとどまった。生きてこそ恩に報いられる、とな。"
+  },
+  {
+    keys:["月照","げっしょう","入水","じゅすい","錦江湾","海に飛び","身を投げ"],
+    a:"月照(げっしょう)は、おいと志を同じくした京都の僧じゃ。幕府に追われた月照を薩摩へ連れ帰ったが、藩は守ってくれなんだ。絶望したおいは、月照とともに錦江湾(きんこうわん)の海に身を投げた。月照は亡くなり、おいだけが奇跡的に生き返った。死にぞこなったこの命、世のために使おうと心に誓ったのじゃ。"
+  },
+  {
+    keys:["島津久光","ひさみつ","久光","殿と不仲","折り合い","地ごろ"],
+    a:"斉彬さまの弟・島津久光(ひさみつ)さまとは、どうも気が合わなんだ。おいはつい「殿は田舎者(地ごろ)で、京での働きは無理でごわす」と言うてしもうたほどでな。そのせいで久光さまの怒りを買い、二度も島へ流された。思うたことを正直に言いすぎる――それがおいの悪いくせよ。"
+  },
+  {
+    keys:["島流し","しまながし","流罪","るざい","遠島","えんとう","島へ流","三度"],
+    a:"おいは生涯に三度も島へ流された。最初は奄美大島、次に徳之島、そして沖永良部島(おきのえらぶじま)じゃ。あわせて5年近く、本土をはなれて暮らした。つらい日々であったが、島の人々とふれあい、学問を深め、人として大きくなれた。苦しみもまた、人を育てるものよ。"
+  },
+  {
+    keys:["奄美","あまみ","奄美大島"],
+    a:"はじめに流されたのが奄美大島じゃ。最初はさびしくてたまらなんだが、島の子らに学問を教え、愛加那という妻も得て、しだいに島の暮らしになじんでいった。都を遠くはなれた島で、おいは人としての根っこを太くしたのじゃ。あの島の日々は、忘れがたい宝よ。"
+  },
+  {
+    keys:["沖永良部","おきのえらぶ","えらぶ","牢","ろう","座敷牢","土持"],
+    a:"沖永良部島(おきのえらぶじま)では、はじめ屋根もろくにない牢に入れられ、体をこわした。それを見かねた島の役人・土持政照(つちもちまさてる)が、自分のお金で立派な座敷牢(ざしきろう)をつくってくれてな。おいは命をひろうた。その恩に報い、島の人々に学問を教えたのじゃ。"
+  },
+  {
+    keys:["島から戻","赦免","しゃめん","召還","復帰","ふっき","ゆるされ"],
+    a:"二度目の島流しのあと、世の中が大きく動きはじめると、薩摩はおいの力をふたたび必要とした。盟友の大久保利通や、家老の小松帯刀(こまつたてわき)らの後押しで、おいは島から呼びもどされた。流人(るにん)から一転、薩摩を背負って天下へ――人の運命とは、わからぬものよのう。"
+  },
+  // ===== 盟友・幕末の動き =====
+  {
+    keys:["大久保","おおくぼ","利通","としみち","盟友","親友","おさななじみ"],
+    a:"大久保利通(おおくぼとしみち)は、同じ加治屋町に育った、おいの幼なじみであり盟友じゃ。性格は正反対でな。おいが情に厚く大ざっぱなら、大久保は冷静で、ち密。二人で力をあわせ、倒幕と新政府づくりをなしとげた。じゃが、のちに二人は道を分かつことになる……。"
+  },
+  {
+    keys:["禁門の変","きんもんのへん","蛤御門","はまぐり","長州と戦"],
+    a:"1864年の禁門(きんもん)の変では、おいは薩摩の兵をひきいて、京の御所にせめてきた長州の軍とたたかい、これをしりぞけた。このころのおいは、まだ長州を敵としておった。じゃが世の流れの中で、やがてその長州と手を結ぶことになる。敵が味方に変わる――それが幕末という時代じゃ。"
+  },
+  {
+    keys:["薩長同盟","さっちょう","長州と同盟","桂と","木戸と","手を結"],
+    a:"1866年、おいは長きにわたって敵対していた長州藩と、ひそかに手を結んだ(薩長同盟)。この二つの強い藩が力をあわせたことで、幕府を倒す流れがいっきに強まったのじゃ。長年の敵と手を握るのは勇気がいる。じゃが、大きな目的のためには、過去のうらみを越えねばならぬのよ。"
+  },
+  {
+    keys:["坂本龍馬","さかもとりょうま","龍馬","りょうま","仲立ち","仲介"],
+    a:"おいと長州の桂小五郎を引きあわせ、薩長同盟の仲立ちをしてくれたのが、土佐の坂本龍馬(さかもとりょうま)じゃ。藩のわくにとらわれず、日本全体のことを考える、おもしろい男であった。立場のちがう者どうしをつなぐ――そういう人がいてこそ、大きな仕事は成るのじゃのう。"
+  },
+  {
+    keys:["桂小五郎","木戸孝允","きど","たかよし","長州の","桂"],
+    a:"桂小五郎(かつらこごろう)、のちの木戸孝允(きどたかよし)は、長州を代表する人物でな。おいと薩長同盟を結んだ相手じゃ。のちに、おい・大久保とともに「維新の三傑(さんけつ)」とよばれることになる。立場はちがえど、新しい日本をつくる志は同じであった。"
+  },
+  {
+    keys:["薩英戦争","さつえい","イギリスと戦","生麦"],
+    a:"おいが島にいたころ、薩摩はイギリスと戦をした(薩英戦争)。生麦(なまむぎ)という村でイギリス人が殺された事件がきっかけよ。この戦で薩摩はイギリスの強さを知り、かえってその後は手を結んで力を学んだ。負けから学ぶ――薩摩は、そういう国であった。"
+  },
+  {
+    keys:["王政復古","おうせいふっこ","天皇中心","大政奉還","政権を返"],
+    a:"1867年、徳川の将軍が政権を天皇にお返しし(大政奉還)、ついで「王政復古(おうせいふっこ)」――ふたたび天皇を中心とする世にもどす、という大号令が出された。おいや大久保は、この新しい世づくりの中心で動いた。700年近くつづいた武士の世が、終わろうとしていたのじゃ。"
+  },
+  // ===== 戊辰戦争・江戸無血開城 =====
+  {
+    keys:["戊辰戦争","ぼしん","新政府軍","官軍","幕府と戦","東征"],
+    a:"戊辰戦争(ぼしんせんそう)は、新政府軍と、旧幕府の側とがたたかった内戦じゃ(1868〜69年)。おいは新政府軍をひきいる立場として、この戦をみちびいた。同じ日本人どうしが争うのは、まことに辛いことよ。じゃが、新しい世を生むためには、避けられぬ道であった。"
+  },
+  {
+    keys:["鳥羽伏見","とばふしみ","最初の戦"],
+    a:"戊辰戦争の口火を切ったのが、京の南で起きた鳥羽・伏見(とばふしみ)の戦いじゃ。数のうえでは旧幕府軍が多かったが、新政府軍が勝利した。天皇の軍であることを示す「錦の御旗(にしきのみはた)」がかかげられ、形勢が決まったともいわれる。旗一つが、人の心を動かすのじゃ。"
+  },
+  {
+    keys:["江戸無血開城","えどむけつ","江戸城","勝海舟","かつかいしゅう","総攻撃","戦わずに"],
+    a:"これぞ、おいの一生でもっとも誇りに思う仕事じゃ。新政府軍が江戸へせめのぼったとき、おいは旧幕府の勝海舟(かつかいしゅう)と話しあい、戦をせずに江戸城を明けわたさせた(江戸無血開城)。百万の人が住む江戸を、戦火から救ったのよ。力でねじふせるばかりが、まことの強さではないのじゃ。"
+  },
+  {
+    keys:["勝海舟","かつかいしゅう","海舟"],
+    a:"勝海舟(かつかいしゅう)は、旧幕府がわの代表として、おいと江戸城の明けわたしを話しあった人物じゃ。たがいに立場はちがえど、無用な戦をさけ、人々を守ろうとする心は同じであった。だからこそ、話がまとまった。敵であっても、信じあえる相手はおるものよ。"
+  },
+  // ===== 明治新政府 =====
+  {
+    keys:["維新三傑","三傑","さんけつ","明治の三傑","三人"],
+    a:"明治維新をなしとげた中心人物として、おい(西郷)、大久保利通、木戸孝允の三人は「維新の三傑(さんけつ)」とよばれる。倒幕、新政府づくり、新しい国の仕組みづくり――それぞれが大きな役目をはたした。じゃが、その三人もやがて先に世を去り、道もまた分かれていったのじゃ。"
+  },
+  {
+    keys:["明治維新","めいじいしん","維新とは","新しい世","世直し"],
+    a:"明治維新(めいじいしん)とは、武士が治める古い世を終わらせ、天皇を中心とした新しい国をつくった、日本の大きな生まれ変わりのことじゃ。身分の制度が変わり、外国に学び、近代的な国へと歩みだした。おいは、その入り口の扉をあける役目をになったのよ。"
+  },
+  {
+    keys:["廃藩置県","はいはんちけん","藩をなくし","県をおいた","藩を廃"],
+    a:"1871年、それまでの「藩」をすべてなくし、かわりに「県」をおいた(廃藩置県)。殿様が治める世から、国がまとめて治める世へ――これは大変革であった。各地の大名が刃向かうおそれもあったが、おいが軍をひきいて新政府を支えたことで、大きな乱れもなく成しとげられたのじゃ。"
+  },
+  {
+    keys:["参議","さんぎ","新政府に","政府に復職","大臣"],
+    a:"明治の世になり、おいは新政府の「参議(さんぎ)」という、いわば大臣の一人となった。さらに初代の陸軍大将(りくぐんたいしょう)にもなった。島流しにあった下級の武士が、新しい国を率いる立場になる――まことに、思いもよらぬ人生であったのう。"
+  },
+  {
+    keys:["陸軍大将","りくぐんたいしょう","近衛","このえ","御親兵","軍人"],
+    a:"おいは新政府で、日本で初めての陸軍大将(りくぐんたいしょう)となった。各藩から精兵を集めて「御親兵(ごしんぺい)」をつくり、天皇と新政府を守る軍の土台をきずいた。新しい国には、新しい国の軍がいる。そのもとをつくるのが、おいの役目であった。"
+  },
+  {
+    keys:["留守政府","るすせいふ","岩倉使節団","使節団が外国","政府をあずか"],
+    a:"1871年、大久保や木戸ら多くの政府の重役が、岩倉使節団(いわくらしせつだん)として外国へ視察に出かけた。その間、おいは日本に残り、政府をあずかった。学制(学校の制度)や徴兵令、地租改正など、国のしくみを整える大切な改革を進めたのじゃ。留守をあずかるのも、また重い務めよ。"
+  },
+  // ===== 征韓論・下野 =====
+  {
+    keys:["征韓論","せいかんろん","朝鮮","ちょうせん","遣韓使節","使者として"],
+    a:"おいは、隣の国・朝鮮(ちょうせん)と仲良く国交を結びたいと考え、まず自分が使者として朝鮮へ行こうと申し出た。これをめぐって政府の意見は真っ二つに割れ、のちに「征韓論(せいかんろん)」とよばれる大論争になった。本当に戦をしようとしたのか、話しあいに行こうとしたのか――今も学者の間で見方が分かれておるのじゃ。"
+  },
+  {
+    keys:["明治六年政変","政変","せいへん","下野","げや","辞めて","政府を去","対立"],
+    a:"1873年、朝鮮への使節をめぐる対立の末、おいの考えはしりぞけられた。おいは政府の役をすべて辞め、板垣退助や江藤新平らとともに政府を去った(明治六年政変)。そして、生まれ故郷の鹿児島へと帰っていった。一度のぼりつめた頂(いただき)から、おいは静かに身を引いたのじゃ。"
+  },
+  {
+    keys:["大久保と対立","大久保と決裂","親友と仲","友と敵","袂を分か"],
+    a:"幼なじみの大久保とは、朝鮮の問題をめぐってついに考えがあわず、たもとを分かつことになった。あれほど力をあわせた二人が、敵味方に分かれてしまう……。これほど辛いことはなかった。大久保もまた、苦しんでおったであろう。志ゆえのすれちがいよ。"
+  },
+  // ===== 私学校・西南戦争 =====
+  {
+    keys:["私学校","しがっこう","学校をつくり","若者を教育","教育"],
+    a:"鹿児島へ帰ったおいは、「私学校(しがっこう)」をつくり、若い士族(もとの武士)たちに学問や訓練を教えた。新しい世になじめず、行き場をなくした若者たちを、まっとうな道へ導きたかったのじゃ。じゃが、その若者たちの不満が、やがて大きな戦へとつながっていく……。"
+  },
+  {
+    keys:["士族の不満","士族","しぞく","武士の不満","刀を取り上げ","廃刀令","秩禄"],
+    a:"明治の世になり、武士は刀を取り上げられ(廃刀令)、家のお給金もうちきられた(秩禄処分)。誇りも仕事も失った士族たちの不満は、各地でふくれあがった。世が大きく変わるとき、古い立場の人々が苦しむ――おいは、その人々の痛みを見すごせなかったのじゃ。"
+  },
+  {
+    keys:["士族の反乱","反乱","佐賀の乱","神風連","秋月","萩の乱"],
+    a:"新政府に不満をもつ士族の反乱は、各地で次々に起きた。佐賀の乱、神風連(しんぷうれん)の乱、秋月の乱、萩(はぎ)の乱……。そして、その流れの最後にして最大のものが、おいが立った西南戦争であった。時代の変わり目には、こうした痛みが伴うものよのう。"
+  },
+  {
+    keys:["西南戦争","せいなんせんそう","最後の戦い","政府と戦","士族最後"],
+    a:"1877年、私学校の生徒たちの暴動をきっかけに、ついに大きな戦が起きた。これが西南戦争(せいなんせんそう)じゃ。おいは、ふるさとの若者たちの先頭に立ち、新政府の軍とたたかった。これが、日本で最後の、そして最大の士族の反乱となった。なぜおいが立ったのか――そなたも考えてみてくれ。"
+  },
+  {
+    keys:["田原坂","たばるざか","激戦","せまった戦","熊本"],
+    a:"西南戦争でもっとも激しかったのが、熊本の田原坂(たばるざか)の戦いじゃ。雨の中、何日も両軍がはげしくうちあった。じゃが、新政府軍の物量にはかなわず、おいの軍は少しずつ追いつめられていった。近代の戦は、刀や勇気だけでは勝てぬ――それを思い知らされた戦であった。"
+  },
+  {
+    keys:["城山","しろやま","最期","さいご","自刃","じじん","別府","死んだ場所","どこで死"],
+    a:"おいの最期は、ふるさと鹿児島の城山(しろやま)じゃ。新政府軍に囲まれ、もはやこれまでと覚悟したおいは、部下の別府晋介(べっぷしんすけ)に介錯(かいしゃく)をたのみ、自ら命を絶った。1877年9月のことよ。生まれ育った鹿児島の地で、おいは生がいを終えたのじゃ。"
+  },
+  {
+    keys:["何歳","なんさい","いくつ","年齢","享年","死んだとき何","いくつで死","何歳で死"],
+    a:"おいが世を去ったのは1877年、城山でのことじゃ。生まれが1828年ゆえ、亡くなったときはおよそ49歳(数えで50)であった。波乱に満ちた一生であったが、最後はふるさとの土に還(かえ)ることができた。武士として、これにまさるしあわせはないのう。"
+  },
+  {
+    keys:["別府晋介","べっぷしんすけ","介錯","かいしゃく","桐野","中村半次郎"],
+    a:"おいの最期を見とどけ、介錯(かいしゃく)してくれたのが、忠義の部下・別府晋介(べっぷしんすけ)じゃ。また桐野利秋(きりのとしあき、もとの中村半次郎)ら、私学校の幹部たちも最後までおいと運命をともにした。命をかけてついてきてくれた者たちのことを思うと、今も胸が熱くなるのよ。"
+  },
+  // ===== 評価・後世 =====
+  {
+    keys:["上野","うえの","銅像","どうぞう","像","犬を連れ","浴衣","ゆかた"],
+    a:"東京の上野公園には、おいの銅像(どうぞう)が立っておる。浴衣すがたで犬を連れた、あのおだやかな像よ。死後、名誉が回復されてのち、人々の寄付で建てられた。妻のイトは「うちの人はこんな姿で人前には出ませぬ」と言うたとか。さて、似ておったかどうか……。"
+  },
+  {
+    keys:["犬","いぬ","ツン","犬好き","ペット","うさぎ狩り","狩り"],
+    a:"おいは大の犬好きでな、何匹もの犬を飼い、犬を連れて山野を歩き、うさぎ狩りを楽しんだ。「ツン」という名の薩摩犬は、とくにかわいがった一匹じゃ。上野の像も、犬を連れた姿よ。大きな体のおいが、犬とたわむれる――その姿を思いうかべてくれると、うれしいのう。"
+  },
+  {
+    keys:["名誉回復","めいよかいふく","正三位","賊軍","逆賊","ゆるされ後"],
+    a:"西南戦争で政府に刃向かったおいは、一度は「逆賊(ぎゃくぞく)」――国にそむいた者とされた。じゃが死から十数年たち、その功績が見直されて名誉が回復され、正三位(しょうさんみ)という位もおくられた。悪人とされたり、英雄とされたり……人の評価とは、まことに移ろいやすいものよのう。"
+  },
+  {
+    keys:["南洲神社","なんしゅうじんじゃ","まつられ","神社","お墓","おはか","墓"],
+    a:"おいは死後、鹿児島の南洲神社(なんしゅうじんじゃ)などにまつられておる。すぐそばには、西南戦争で命を落とした多くの仲間たちの墓もならんでおる。ともに戦い、ともに眠る。あの世でも、おいは仲間たちと一緒じゃ。さびしくはないのよ。"
+  },
+  {
+    keys:["敬天愛人","けいてんあいじん","座右の銘","ざゆうのめい","好きな言葉"],
+    a:"おいが何より大切にした言葉が「敬天愛人(けいてんあいじん)」じゃ。「天を敬(うやま)い、人を愛する」――天の道にしたがい、自分も他人も同じように愛しなさい、という意味よ。私欲をすて、人のために生きる。この四文字に、おいの生き方のすべてがこめられておる。"
+  },
+  {
+    keys:["南洲翁遺訓","いくん","遺訓","教え","言葉を集め","本"],
+    a:"おいの語った言葉を集めた本に『南洲翁遺訓(なんしゅうおういくん)』がある。おもしろいことに、これをまとめたのは、西南戦争で敵がわとなった旧庄内藩(しょうないはん)の人々じゃ。敵であったおいの教えを、わざわざ書き残してくれた。立場をこえて慕われる――武士として、これにまさるほまれはない。"
+  },
+  {
+    keys:["名言","めいげん","ことば","美田","児孫","命もいらず"],
+    a:"おいの言葉として「児孫(じそん)のために美田(びでん)を買わず」というのがある。子や孫のために財産を残すよりも、自分の力で生きる心を育てよ、という意味じゃ。また「命もいらず、名もいらず、官位も金もいらぬ者ほど始末に困る。だが、そういう者でなければ大事は成せぬ」とも語った。欲のない者こそ強い、とな。"
+  },
+  {
+    keys:["人柄","ひとがら","性格","せいかく","どんな人","人がら"],
+    a:"おいの人がらか。情に厚く、私欲がうすく、おだやかで、めったに怒らぬ――そう言われることが多い。大きな体で、どっしりとかまえ、人の話によく耳をかたむけた。じゃが、ここぞというときには命をかけて動く。そういう男であったと、思うてくれればよい。"
+  },
+  // ===== 趣味・人となり =====
+  {
+    keys:["趣味","しゅみ","好き","すき","このみ","何が好き"],
+    a:"おいの好きなものか。犬を連れての狩りや散歩、相撲、温泉、そして読書じゃ。とくに犬と山野を歩くのが何よりの楽しみでな。むずかしい政のことを忘れ、自然の中で犬とすごすひととき――あれが、おいの心を養ってくれたのよ。"
+  },
+  {
+    keys:["相撲","すもう","力士","すもうとり"],
+    a:"おいは子どものころから相撲が大好きでな。刀が握れなくなってからは、いっそう相撲に打ちこんだ。大きな体をいかして、なかなかの強さであったぞ。力をきそい、正々堂々とぶつかりあう相撲の心は、武士の生き方にも通じておる。よい鍛錬であったのじゃ。"
+  },
+  {
+    keys:["温泉","おんせん","湯治","とうじ","療養"],
+    a:"おいは温泉が大好きでな。鹿児島は温泉の多い土地で、よく湯につかって体を休めた。とくに政府を去って故郷に帰ってからは、犬を連れて山の温泉をめぐり、ゆったりとすごした。あのおだやかな日々が、ずっと続いてくれればと、今でも思うことがある。"
+  },
+  {
+    keys:["食べ物","たべもの","食事","好物","大食い","うなぎ","豚","ぶた"],
+    a:"おいは体が大きいぶん、よく食べたぞ。うなぎや、薩摩のごちそうである豚肉などを好んだと伝わる。質素な暮らしを旨(むね)としたが、食べることは元気のもと。たくさん食べて、たくさん働く――これも、おいの流儀の一つであったのじゃ。"
+  },
+  {
+    keys:["病気","びょうき","太って","ふとって","島の病","フィラリア"],
+    a:"おいは沖永良部島にいたころ、島の病にかかってしもうてな。それで体がむくみ、ますます大きくなったともいわれる。生涯、その病とつきあった。じゃが、おいは弱音を吐かなんだ。体の不自由をかかえても、為すべきことを為す――それが武士というものよ。"
+  },
+  {
+    keys:["質素","しっそ","ぜいたく","お金","欲がない","私欲"],
+    a:"おいは、高い位についても、ぜいたくをきらった。立派な服も、大きな屋敷も望まず、もらった給金の多くは人のために使うてしもうた。「自分のために財産をためるな」と説いたのも、おい自身がそう生きたからじゃ。欲をすてれば、心は軽くなる。ためしてみよ。"
+  },
+  {
+    keys:["薩摩弁","さつまべん","おいどん","ごわす","方言","ことばづかい"],
+    a:"おいたち薩摩の者は、独特のことばを使うてな。自分のことを「おい」や「おいどん」、「〜です」を「〜でごわす」などと言う。よその国の者には、なかなか通じぬほどであった。じゃが、ふるさとのことばには、ふるさとへの誇りと愛着がこもっておるのじゃ。"
+  },
+  {
+    keys:["写真","しゃしん","本物の写真","顔","かお","残ってない"],
+    a:"じつはな、おいの確かな写真は、一枚も残っておらぬのじゃ。写真をとるのをきらった、ともいわれる。今に伝わる肖像は、外国人の絵師キヨッソーネが、おいの弟・従道や従弟の大山巌の顔をもとに、想像で描いたものよ。だから本当のおいの顔は、誰も知らぬ、というわけじゃ。ふしぎな話じゃろう。"
+  },
+  {
+    keys:["肖像画","しょうぞうが","絵","え","キヨッソーネ","どんな顔"],
+    a:"今みなが知る、目の大きなおいの肖像画は、イタリア人の絵師キヨッソーネが描いたものじゃ。本人の写真がないため、おいの弟と従弟の顔を合わせて描いたといわれる。つまり、あの絵は半分は想像。だからこそ、そなたの心の中で、おいの姿を自由に思いえがいてくれてよいのよ。"
+  },
+  {
+    keys:["書","しょ","字","じ","筆","ふで","書道"],
+    a:"おいは立派な書(しょ、毛筆の字)を残したことでも知られておる。大きく、のびやかで、力強い字じゃ。「敬天愛人」と書いた書も、各地に伝わっておる。字には、その人の心があらわれる。おいの字を見れば、おいという人間が少しは分かるかもしれぬのう。"
+  },
+  // ===== 関連人物 =====
+  {
+    keys:["木戸孝允","きどたかよし","桂と同じ","長州の代表"],
+    a:"木戸孝允(きどたかよし)は、もとの名を桂小五郎(かつらこごろう)という、長州を代表する人物じゃ。おいと薩長同盟を結び、ともに維新を進めた。おい・大久保とならぶ「維新の三傑」の一人よ。立場はちがえど、新しい日本を思う心は、おいと同じであった。"
+  },
+  {
+    keys:["岩倉具視","いわくらともみ","公家","くげ","岩倉"],
+    a:"岩倉具視(いわくらともみ)は、もとは公家(くげ、朝廷につかえる貴族)でな。武士でないながら、王政復古や新政府づくりで大きな働きをした。のちには使節団をひきいて外国もまわった。武士・公家・町人――いろいろな立場の者が力をあわせてこそ、維新は成ったのじゃ。"
+  },
+  {
+    keys:["桐野利秋","きりのとしあき","中村半次郎","人斬り"],
+    a:"桐野利秋(きりのとしあき)は、もとの名を中村半次郎といい、おいを深く慕った薩摩の武士じゃ。幕末には「人斬り半次郎」と恐れられたが、明治には陸軍の少将にまでなった。西南戦争では、最後までおいとともに戦い、城山で散った。忠義のあつい男であった。"
+  },
+  {
+    keys:["村田新八","むらたしんぱち","側近","ともに島"],
+    a:"村田新八(むらたしんぱち)は、おいとともに島流しにあった、苦楽をともにした側近じゃ。学問にも武芸にもすぐれ、外国にも渡った見識の広い男よ。西南戦争では最後までおいに付きしたがい、城山で命を絶った。よき仲間に恵まれたことは、おいの一生の幸せであった。"
+  },
+  {
+    keys:["篤姫","あつひめ","天璋院","将軍の妻"],
+    a:"篤姫(あつひめ)は、薩摩の島津家から徳川将軍家へ嫁いだお方じゃ。斉彬さまの養女としてな。おいも、斉彬さまの命でこの縁組みのために働いたことがある。のちに江戸城を明けわたすとき、篤姫が江戸の人々を思って動いた、という話も伝わる。薩摩と江戸を結ぶお方であった。"
+  },
+  // ===== 時代背景 =====
+  {
+    keys:["幕末","ばくまつ","幕末とは","どんな時代","いつの時代"],
+    a:"おいが生きたのは「幕末(ばくまつ)」――徳川の幕府が終わりに近づいた、揺れ動く時代じゃ。黒船が来て国を開くかどうかでもめ、各地の武士が新しい世を求めて立ちあがった。古い世が終わり、新しい世が生まれる、そのはざま。おいは、その大波の中を泳ぎぬいたのよ。"
+  },
+  {
+    keys:["黒船","くろふね","ペリー","開国","かいこく","外国船"],
+    a:"おいが20代のころ、アメリカのペリーが黒船(くろふね)をひきいて日本にやってきた。長く国を閉じていた日本は、開国(かいこく)するかどうかで大さわぎになった。この黒船こそ、幕末という激動の時代の幕開けよ。外の世界の力を、日本中が初めて思い知ったのじゃ。"
+  },
+  {
+    keys:["倒幕","とうばく","幕府を倒","徳川を倒"],
+    a:"幕府の力では、もはやこの国を守れぬ――そう考えた者たちが、徳川の幕府を倒して新しい世をつくろうとした。これが「倒幕(とうばく)」じゃ。おいや大久保、長州の者たちが、その中心となって動いた。700年つづいた武士の政を終わらせる――それは、命がけの大事業であった。"
+  },
+  {
+    keys:["富国強兵","ふこくきょうへい","強い国","近代化","西洋に学"],
+    a:"明治の新政府がかかげた目標が「富国強兵(ふこくきょうへい)」――国を豊かにし、軍を強くする、という考えじゃ。外国に負けぬ強い国をつくるため、西洋に学び、産業をおこし、軍をととのえた。おいもその道すじをつくる一人であった。じゃが、急ぎすぎる近代化に、苦しむ人々もおったのじゃ。"
+  },
+  // ===== 総合・教訓 =====
+  {
+    keys:["なぜ有名","ゆうめい","すごい","えらい","人気","なぜ慕われ"],
+    a:"おいがなぜ今も慕われるのか、か。私欲がなく、人を思いやり、命をかけて世のために尽くした――その生き方が、人の心を打つのであろう。最後は政府に刃向かい逆賊とされたが、それでも人々はおいを愛しつづけた。損得をこえて人を動かすもの、それが「まごころ」よ。"
+  },
+  {
+    keys:["教訓","きょうくん","学ぶ","まなぶ","どう生きる","西郷から"],
+    a:"おいから何を学ぶか、か。私欲をすて、人のために生きること。仲間を信じ、たがいに教えあうこと。そして、苦しいときもくさらず、与えられた場所で誠をつくすこと。じゃが同時に、まごころだけでは世は動かせぬ、ということも、おいの一生は教えておる。よいところも、あやまちも、両方学ぶがよい。"
+  },
+  {
+    keys:["島流しから","三度流され","苦労","くろう","どう乗り越え"],
+    a:"おいは三度も島へ流され、命を絶とうとしたことさえあった。じゃが、そのたびに学び、人とふれあい、心を太くして立ち上がった。どん底にいるときこそ、人は大きく育つ。今がつらい者がおれば、覚えておいてくれ――冬が深いほど、春のよろこびは大きいのじゃ。"
+  },
+  {
+    keys:["大久保との友情","友と敵に","親友なのに","二人の最後","友情と決裂"],
+    a:"幼なじみの大久保とおいは、力をあわせて維新をなしとげながら、最後は道を分かち、敵味方となった。そしておいの死の翌年、大久保もまた、凶刃にたおれた。志を同じくした二人が、ともに激動の中で散ったのじゃ。友であり、よきライバルであった大久保のことは、今も忘れぬ。"
+  },
+  {
+    keys:["子孫","しそん","末裔","まつえい","続いてる","今の子孫"],
+    a:"おいの血すじは、今の世にも続いておる。子の菊次郎は京都市長となり、孫やその子らも、それぞれの道で生きてきた。150年近くたっても、おいの名と志が語りつがれておる――一人の薩摩武士として、これにまさるよろこびはないのう。"
+  },
+  {
+    keys:["なぜ立った","なぜ西南","どうして戦","政府に刃向か","裏切ったの"],
+    a:"なぜおいが、自らつくった政府に刃向かったのか――じつは、それは今もって、はっきりとは分からぬのじゃ。不満をもつ若者を見すごせなかったとも、時代に取り残された者の意地だったとも、いろいろに言われておる。歴史の大きななぞの一つよ。一つの答えに決めつけず、そなた自身で考えてみてくれ。"
+  },
+  {
+    keys:["大河ドラマ","せごどんドラマ","テレビ","ドラマ","西郷どんの番組"],
+    a:"おいの一生は、本や映画、テレビのドラマにも、たびたびえがかれてきた。「西郷どん」という名で親しまれてな。150年近くたっても、こうして人々がおいの物語に心を寄せてくれる。語りつがれるかぎり、おいは生きておる――そう思えば、ありがたい話じゃのう。"
+  },
+  {
+    keys:["薩摩藩","さつまはん","島津家","しまづ","強い藩","薩摩はなぜ強"],
+    a:"おいの生まれた薩摩藩は、九州の南にあって、島津家が長く治めた強い藩じゃ。海のむこうと交わり、財をたくわえ、新しい武器や技術をいち早く取り入れた。その豊かさと進取の気風が、幕末に大きな力となった。強い藩あってこそ、おいも働けたのよ。"
+  },
+  {
+    keys:["征韓論くわしく","本当に戦","侵略","おだやか","平和的"],
+    a:"征韓論について、近ごろの研究では「おいは戦をしようとしたのではなく、話しあいで国交を開くため、自ら使者に立とうとしたのだ」という見方も強い。一方で「結局は戦につながったのでは」という見方もある。同じできごとでも、見る角度で答えがちがう。歴史とは、そういうものよ。"
+  },
+  {
+    keys:["旗","はた","錦の御旗","にしきのみはた","軍旗"],
+    a:"戊辰戦争で新政府軍がかかげた「錦の御旗(にしきのみはた)」は、天皇の軍であることを示す旗じゃ。これがあがると、旧幕府軍は「朝廷に刃向かう賊」となってしまう。武器の強さだけでなく、こうした大義名分(たいぎめいぶん)が、戦の勝ち負けを左右することもある。旗一つの重みよ。"
+  },
+  {
+    keys:["徳川慶喜","よしのぶ","最後の将軍","慶喜"],
+    a:"徳川慶喜(よしのぶ)は、徳川幕府の最後の将軍じゃ。政権を天皇に返し(大政奉還)、江戸城も明けわたした。おいは新政府がわとして、その江戸城の明けわたしを勝海舟と話しあった。慶喜が無用な抵抗をせなんだからこそ、江戸は戦火をまぬがれた。引きぎわの見事さもまた、一つの英断よ。"
+  },
+  {
+    keys:["板垣退助","いたがきたいすけ","江藤新平","ともに下野","自由民権"],
+    a:"おいと同じく、明治六年の政変で政府を去ったのが、土佐の板垣退助(いたがきたいすけ)や、肥前の江藤新平(えとうしんぺい)らじゃ。おいは武の道で士族とともに立ったが、板垣は言論――「自由民権運動」という、国民の権利を求める道へ進んだ。同じ志でも、たどる道はさまざまであった。"
+  },
+  {
+    keys:["小松帯刀","こまつたてわき","家老","小松"],
+    a:"小松帯刀(こまつたてわき)は、薩摩藩の若き家老で、おいや大久保を支えてくれた人物じゃ。身分の低いおいを引き立て、島から呼びもどす後押しもしてくれた。薩長同盟のかげにも、この小松の働きがあった。陰で大きな仕事をする――そういう立派な男であった。"
+  },
+  {
+    keys:["奄美の生活","島の暮らし","愛加那との","島での日々"],
+    a:"奄美での暮らしは、はじめこそさびしかったが、やがて温かいものとなった。島の子らに学問を教え、愛加那という妻を得て、菊次郎・菊草という子も生まれた。都の権力争いをはなれ、人としての幸せにふれた日々よ。あの島の温もりは、おいの一生の支えとなったのじゃ。"
+  },
+  {
+    keys:["庄内藩","しょうないはん","遺訓を作った","敵が慕","南洲翁誰が"],
+    a:"おもしろい話がある。おいの教えを集めた『南洲翁遺訓』をまとめたのは、なんと戊辰戦争でおいの敵となった、東北の庄内藩(しょうないはん)の人々なのじゃ。降伏した庄内に、おいが寛大に接したことで、彼らはおいを深く慕った。敵をも味方にする――それが、おいのめざした生き方よ。"
+  },
+  {
+    keys:["人を許","寛大","かんだい","敵にやさし","降伏した相手"],
+    a:"おいは、降伏した敵には、できるかぎり寛大(かんだい)に接した。江戸を戦火から救い、東北の庄内藩にもむごい仕打ちをせなんだ。勝った者がおごらず、負けた者をいたわる――それが、まことの強さじゃと信じておった。にくしみは、にくしみしか生まぬのよ。"
+  },
+  {
+    keys:["遣韓使節くわしく","使者になりたい","なぜ朝鮮へ","自分が行く"],
+    a:"おいが「自分が朝鮮へ使者に立つ」と申し出たのには、わけがあった。もし話しあいが決裂し、おいが殺されれば、それを口実に戦を起こせる――そう考えていた、とも伝わる。つまり、自らの命を捨て石にしようとしたのじゃ。その真意は、今も議論がたえぬ。深いなぞよのう。"
+  },
+  {
+    keys:["大久保の最期","大久保が死","紀尾井坂","大久保暗殺"],
+    a:"おいが城山で世を去った翌年、盟友であり、最後は敵となった大久保利通もまた、東京の紀尾井坂(きおいざか)で襲われ、命を落とした。志をともにした二人が、あいついで世を去ったのじゃ。新しい国づくりは、多くの命の上に築かれた――そのことを、忘れてはならぬ。"
+  },
+  {
+    keys:["明治政府の改革","新しい制度","学制","徴兵","地租改正","近代の改革"],
+    a:"おいが留守をあずかった間にも、新政府は次々と新しい制度をつくった。子どもみなが学校に通う「学制」、国民が兵となる「徴兵令」、田畑に税をかける「地租改正」――どれも、近代の国に欠かせぬものよ。古い世を壊すだけでなく、新しい世のしくみを築く。それが維新の本当の仕事じゃ。"
+  },
+  {
+    keys:["どんな最期","西南戦争の終わり","城山の戦い","最後どうなった"],
+    a:"西南戦争の終わり、おいの軍は鹿児島の城山に追いつめられた。わずかな手勢で立てこもったが、もはや勝ち目はなかった。最後の朝、おいは静かに陣を出て、敵弾に倒れ、別府晋介の介錯で果てた。「もう、ここらでよか」――そう言うたとも伝わる。覚悟の最期であった。"
+  },
+  {
+    keys:["維新の功績","何をした","いちばんの仕事","功績","成しとげた"],
+    a:"おいの一生でいちばんの功績は、と問われれば――やはり、江戸を戦火から救った「江戸無血開城」と、新しい日本を生んだ「明治維新」への働きであろう。古い世を終わらせ、新しい世の扉をひらいた。じゃが、その新しい世になじめぬ人々とともに、最後は散った。光と影、両方がおいの一生よ。"
+  },
+  {
+    keys:["薩摩の郷中","ごじゅう","郷中教育","薩摩の教育","子どもの教育"],
+    a:"薩摩には「郷中(ごじゅう)」という、独特の子どもの育て方があった。年上の子が年下の子に、勉強も武芸も礼儀も教える――そういう仕組みじゃ。おいも、この郷中で育ち、やがて年下を教える側になった。仲間と学びあい、支えあう。あの経験が、人をまとめる力の土台になったのじゃ。"
+  },
+  {
+    keys:["好きな言葉もっと","座右の銘ほか","他の名言","心がけ"],
+    a:"「敬天愛人」のほかにも、おいが大切にした考えがある。たとえば「人を相手にせず、天を相手にせよ」――人の評価に一喜一憂せず、天の道に恥じぬ生き方をせよ、という意味じゃ。人の目ばかり気にしておると、心が小さくなる。もっと大きなものを見て生きよ、というおいの教えよ。"
+  },
+  {
+    keys:["銅像はなぜ犬","なぜ浴衣","像のいわれ","上野の像くわしく"],
+    a:"上野の像が、いかめしい軍服でなく、浴衣に犬という気どらぬ姿なのには、わけがある。それこそが、ふるさとで犬とすごした、ありのままのおいの姿だからじゃ。位や軍服でなく、素朴な人がらこそ慕われた――そういうおいを、人々はあの像に込めてくれたのであろう。ありがたいことよ。"
+  },
+  {
+    keys:["明治天皇","てんのう","天皇との関係","天皇に仕え"],
+    a:"おいは、明治天皇のもとで新しい国づくりに力をつくし、天皇からも厚い信頼を寄せられた。じゃが最後は、その天皇の政府に刃を向けることになってしもうた。それでも、おいの天皇への忠義の心は変わらなんだ、とおいは信じておる。立場と心は、ときに引き裂かれるものよ。"
+  },
+  {
+    keys:["なぜ政府を去","下野の理由","辞めた理由","故郷に帰った理由"],
+    a:"おいが政府を去ったのは、朝鮮の使節をめぐる対立に敗れたからじゃ。だが、それだけではない。急ぎすぎる近代化の中で見すてられてゆく士族たちのことが、どうにも気にかかってな。中央の出世より、ふるさとの人々とともにあることを選んだのよ。それがよかったかどうかは……そなたが考えてくれ。"
+  },
+  {
+    keys:["失敗","しっぱい","あやまち","間違い","反省"],
+    a:"おいとて、あやまちのない一生ではなかった。思うたことを言いすぎて殿の怒りを買い、島へ流された。最後は政府に刃を向け、多くの若者を死なせてしもうた。これは今も「あやまちであった」と語られる。英雄にも、過ちはある。だからこそ、ありのままを学ぶことが大切なのじゃ。"
+  },
+  {
+    keys:["どんな声","声","こえ","話し方","しゃべり方"],
+    a:"おいの声か。低く、よく響く声であったと伝わる。口数は多くなく、じっと人の話を聞き、ここぞというときに静かに、しかし重く言葉を発した。べらべらと多くを語る者より、黙して芯のある者のほうが、人を動かすことがある。そういう男でありたいと、おいは思うておった。"
+  },
+  {
+    keys:["勇気","ゆうき","決断","けつだん","度胸","どきょう"],
+    a:"大きな決断のとき、おいは肝(きも)がすわっておったと言われる。江戸無血開城も、西南戦争も、命をかけた大きな決断であった。おそれがないわけではない。じゃが、為すべきと信じたなら、結果をおそれず踏み出す。その覚悟があってこそ、世は動く。勇気とは、おそれの中で進むことよ。"
+  },
+  {
+    keys:["仲間","なかま","部下","ぶか","家来","けらい","慕われ"],
+    a:"おいのまわりには、命をかけてついてきてくれる仲間が大ぜいおった。桐野、村田、別府……島流しも、戦も、最後の城山まで、ともにしてくれた者たちじゃ。人がついてくるのは、地位や力ではない。まごころよ。よき仲間に恵まれたことが、おいの一生いちばんの宝であった。"
+  },
+  {
+    keys:["維新後の苦しみ","新しい世のひずみ","近代化のかげ","取り残され"],
+    a:"明治の新しい世は、たしかに国を強くした。じゃが、そのかげで、職も誇りも失った武士たちが大ぜいおった。おいは、その人々の痛みを見すごせなかった。新しさには、つねに影がともなう。光だけを見ず、影で苦しむ人にも目を向ける――それが、人の上に立つ者の務めじゃと、おいは思う。"
+  },
+  {
+    keys:["まとめ","どんな人だった","一生","生涯","しょうがい","物語"],
+    a:"おいの一生は、貧しい下級武士に生まれ、名君に見いだされ、三度島に流され、維新をなしとげ、最後はふるさとで散る――波乱に満ちたものであった。私欲をすて、人を愛し、まごころに生きた。光も影もある一生じゃが、悔いはない。さあ、おいの何を学ぶかは、そなた次第よ。よう学んでくれ。"
+  }
+];
+
+// 入力にいちばん合う答えをさがす
+function findAnswer(text){
+  const t = (text||"").replace(/\s/g,"");
+  if(!t) return null;
+  let best=null, bestScore=0;
+  for(const item of KB){
+    let score=0;
+    for(const k of item.keys){ if(t.includes(k)) score += k.length; }
+    if(score>bestScore){bestScore=score; best=item;}
+  }
+  return bestScore>0 ? best.a : null;
+}
+
+const NOT_FOUND = [
+  "ふむ、それはおいにもよう分からぬ問いじゃ。言葉を変えて、もう一度きいてみてくれ。たとえば『西南戦争』『江戸無血開城』『大久保利通』『敬天愛人』などはどうじゃ？",
+  "むむ、それについては答えを持ちあわせておらぬ。べつの言い方で、もう一度たずねてみてくれ。",
+  "はて、聞きおぼえのない問いじゃのう。『薩長同盟』や『上野の銅像』のことなら、いくらでも語ってやれるぞ。"
+];
+
+const GREET = "やあ、おいが西郷隆盛じゃ！　薩摩(いまの鹿児島県)に生まれ、幕末から明治の世を生きた者でな。「おい」とは薩摩のことばで「わたし」のことよ。聞きたいことを下のますに入力して、リターンを押すか「きく」ボタンを押すがよい。なんでも答えてやろうぞ！";
+
+// ===== タイプライター表示 =====
+const answerEl = document.getElementById('answer');
+const faceEl = document.getElementById('face');
+let typing=null;
+let mouthTimer=null;
+function startMouth(){
+  stopMouth();
+  // 口を開いた絵と閉じた絵をすばやく切り替えて「ぱくぱく」させる
+  mouthTimer=setInterval(()=>{ faceEl.classList.toggle('talking-open'); },130);
+}
+function stopMouth(){
+  if(mouthTimer){ clearInterval(mouthTimer); mouthTimer=null; }
+  faceEl.classList.remove('talking-open'); // 話し終わりは口を閉じた絵にもどす
+}
+function speak(text, mood){
+  faceEl.classList.remove('talk','seikai','zannen'); void faceEl.offsetWidth;
+  faceEl.classList.add(mood || 'talk');
+  startMouth();
+  if(typing) clearInterval(typing);
+  answerEl.innerHTML="";
+  let i=0;
+  typing=setInterval(()=>{
+    if(i>=text.length){clearInterval(typing); stopMouth(); return;}
+    answerEl.appendChild(document.createTextNode(text[i]));
+    i++;
+  },32);
+}
+
+function handleAsk(text){
+  const a = findAnswer(text);
+  if(a){ speak(a); }
+  else{ speak(NOT_FOUND[Math.floor(Math.random()*NOT_FOUND.length)]); }
+}
+
+// ===== 入力イベント =====
+const qEl=document.getElementById('q');
+
+// IME（日本語入力）の変換確定中かどうかを記録する
+let composing=false;
+qEl.addEventListener('compositionstart',()=>{ composing=true; });
+qEl.addEventListener('compositionend',()=>{ composing=false; });
+
+document.getElementById('askBtn').onclick=()=>handleAsk(qEl.value);
+qEl.addEventListener('keydown',e=>{
+  // 漢字変換などの確定リターンでは送信しない。
+  // 変換が確定し、ふつうにリターンを押したときだけ質問を送る。
+  if(e.key==='Enter' && !composing && !e.isComposing){
+    handleAsk(qEl.value);
+  }
+});
+
+
+// ===== 年表データ =====
+const TIMELINE = [
+  {y:"1828", t:"薩摩の鹿児島に生まれる", a:"おいが生まれた年じゃ。下加治屋町という、貧しいながらも志ある者の多い町であった。"},
+  {y:"1851", t:"島津斉彬が薩摩藩主に", a:"名君・斉彬さまが藩主となり、やがて下級武士のおいを見いだしてくださった。一生の恩人よ。"},
+  {y:"1858", t:"斉彬の死／月照と入水", a:"頼みの斉彬さまが急死。絶望したおいは僧の月照と海に身を投げたが、おいだけが生き返った。"},
+  {y:"1859", t:"奄美大島へ（1度目の島流し）", a:"幕府の目をのがれるため奄美大島へ。島で愛加那と暮らし、子も生まれた。"},
+  {y:"1862", t:"徳之島・沖永良部島へ（2度目）", a:"久光さまと折り合わず、ふたたび島流し。牢の暮らしは苦しかったが、よく耐えぬいた。"},
+  {y:"1864", t:"島から戻り、禁門の変で活躍", a:"赦されて復帰。京で長州の軍をしりぞけ、薩摩の中心人物となった。"},
+  {y:"1866", t:"薩長同盟を結ぶ", a:"坂本龍馬の仲立ちで、長年の敵・長州と手を結んだ。倒幕の流れが一気に強まった。"},
+  {y:"1867", t:"王政復古", a:"政権が天皇にもどされ、新しい世づくりが始まった。"},
+  {y:"1868", t:"戊辰戦争／江戸無血開城", a:"勝海舟と話しあい、戦わずに江戸城を明けわたさせた。百万の江戸を戦火から救うたのじゃ。"},
+  {y:"1871", t:"廃藩置県／参議となる", a:"藩をなくし県をおく大改革。おいは新政府の中心の一人となった。"},
+  {y:"1873", t:"征韓論で対立し下野", a:"朝鮮への使節をめぐり大久保らと対立、敗れて政府を去り、鹿児島へ帰った。"},
+  {y:"1874", t:"私学校をつくる", a:"行き場を失った若い士族たちに、学問と訓練を教えた。"},
+  {y:"1877", t:"西南戦争／城山で最期", a:"士族最後の大反乱の先頭に立つも敗れ、城山で生がいを終えた。享年49であった。"},
+  {y:"1898", t:"上野に銅像が建つ", a:"名誉が回復され、人々の手で上野公園に銅像が建てられた。犬を連れた、あの姿よ。"}
+];
+
+// ===== 地図ゆかりの地データ（座標は地図の0〜1000系）=====
+const PLACES = [
+  {n:"①", name:"鹿児島（薩摩）", x:118, y:892, a:"おいのふるさと薩摩(いまの鹿児島)じゃ。下加治屋町に生まれ、最後は城山で生がいを終えた。生まれた地で死ぬ――武士として本望よ。"},
+  {n:"②", name:"奄美大島", x:196, y:980, island:true, a:"1度目の島流しの地、奄美大島じゃ。さびしい流人(るにん)の暮らしの中で、島の子に学問を教え、愛加那という妻も得た。つらくも温かい島であった。"},
+  {n:"③", name:"徳之島・沖永良部島", x:160, y:1040, island:true, a:"2度目の島流しで送られた島々じゃ。牢に入れられ体をこわしたが、島の人の情けに救われた。苦しみが、おいという人間を大きくしたのよ。"},
+  {n:"④", name:"熊本・田原坂", x:128, y:846, a:"西南戦争でもっとも激しく戦ったのが、熊本の田原坂(たばるざか)じゃ。雨の中、何日もうちあった。じゃが、近代の軍の力にはかなわなんだ……。"},
+  {n:"⑤", name:"山口（長州）", x:165, y:748, a:"長く敵であった長州(いまの山口県)とは、1866年に手を結んだ(薩長同盟)。この同盟が、幕府を倒す大きな力となったのじゃ。"},
+  {n:"⑥", name:"京都", x:376, y:690, a:"京は幕末の政(まつりごと)の中心地じゃ。禁門の変で戦い、僧の月照と出会い、天下のことを語りあった。おいが大きく羽ばたいた地よ。"},
+  {n:"⑦", name:"江戸（東京）", x:586, y:660, a:"江戸――いまの東京じゃ。勝海舟と話しあい、戦わずに江戸城を明けわたさせた(江戸無血開城)。のちに明治政府でも働き、上野にはおいの銅像も立っておる。"}
+];
+
+// ===== クイズデータ =====
+const QUIZ = [
+  {q:"西郷隆盛が生まれた藩はどこ？", o:["薩摩藩","長州藩","土佐藩"], c:0, a:"おいは薩摩(いまの鹿児島)の生まれじゃ。"},
+  {q:"下級武士の西郷を見いだした名君は？", o:["徳川慶喜","島津斉彬","坂本龍馬"], c:1, a:"島津斉彬さま。おいの一生を変えた恩人よ。"},
+  {q:"西郷は何度、島へ流された？", o:["1度","2度","3度"], c:2, a:"奄美・徳之島・沖永良部、合わせて三度じゃ。"},
+  {q:"長州と結んだ同盟の名は？", o:["薩長同盟","日米同盟","薩英同盟"], c:0, a:"薩長同盟。倒幕の大きな力となった。"},
+  {q:"戦わずに江戸城を明けわたす交渉をした相手は？", o:["勝海舟","大久保利通","木戸孝允"], c:0, a:"勝海舟。二人で江戸を戦火から救うたのよ。"},
+  {q:"1877年に西郷が指導した最後の戦いは？", o:["戊辰戦争","西南戦争","関ヶ原の戦い"], c:1, a:"西南戦争。士族最後の大反乱じゃ。"},
+  {q:"西郷が最期をむかえた場所は？", o:["本能寺","城山","江戸城"], c:1, a:"ふるさと鹿児島の城山でな。"},
+  {q:"西郷が大切にした言葉は？", o:["天下布武","敬天愛人","知行合一"], c:1, a:"敬天愛人。天を敬い、人を愛す――おいの生き方よ。"},
+  {q:"上野公園の西郷像が連れているのは？", o:["馬","犬","鷹"], c:1, a:"犬じゃ。おいは大の犬好きでな。"},
+  {q:"西郷・大久保利通とともに『維新の三傑』とよばれるのは？", o:["木戸孝允","徳川家康","明智光秀"], c:0, a:"長州の木戸孝允(桂小五郎)よ。"}
+];
+
+// ===== タブ切り替え =====
+const TAB_PANELS = {qa:'panel-qa', timeline:'panel-timeline', map:'panel-map', rel:'panel-rel', quiz:'panel-quiz'};
+const TAB_INTRO = {
+  qa:"なんでも聞いてくれ。下のますに入力して「きく」を押すがよい。",
+  timeline:"おいの一生を、年表にまとめたぞ。気になる年をタップすると、くわしく話してやろう。",
+  map:"おいにゆかりの地を、地図にしるした。ピンをタップすると、その土地の物語を語ってやる。地図は東は江戸までじゃ。",
+  rel:"おいをめぐる人々を、相関図にまとめた。だれかをタップすると、その人との間がらを語ってやろう。",
+  quiz:"さあ、西郷どんクイズの始まりじゃ！　全十問、何問わかるかのう？"
+};
+document.querySelectorAll('.tab').forEach(tb=>{
+  tb.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    tb.classList.add('active');
+    Object.values(TAB_PANELS).forEach(id=>document.getElementById(id).classList.remove('show'));
+    const key=tb.dataset.tab;
+    document.getElementById(TAB_PANELS[key]).classList.add('show');
+    speak(TAB_INTRO[key]);
+    if(key==='quiz') startQuiz();
+  });
+});
+
+// ===== 年表を組み立てる =====
+const tlEl=document.getElementById('timeline');
+TIMELINE.forEach(it=>{
+  const row=document.createElement('div');
+  row.className='tl-item';
+  row.innerHTML='<div class="tl-year">'+it.y+'</div>'+
+                '<div class="tl-line"><div class="tl-dot"></div></div>'+
+                '<div class="tl-text">'+it.t+'</div>';
+  row.addEventListener('click',()=>speak(it.y+"年――"+it.t+"。"+it.a));
+  tlEl.appendChild(row);
+});
+
+// ===== 地図を組み立てる =====
+const SVGNS="http://www.w3.org/2000/svg";
+const mapSvg=document.getElementById('saigo-map');
+function svgEl(tag,attrs,text){
+  const e=document.createElementNS(SVGNS,tag);
+  for(const k in attrs) e.setAttribute(k,attrs[k]);
+  if(text!=null) e.textContent=text;
+  return e;
+}
+// ゆかりの県をハイライト（鹿児島46・熊本43・山口35・京都26・東京13）
+[46,43,35,26,13].forEach(code=>{
+  const g=mapSvg.querySelector('.prefecture[data-code="'+code+'"]');
+  if(g) g.classList.add('pref-hl');
+});
+// ピンを置く
+PLACES.forEach(p=>{
+  const g=svgEl('g',{'class':'map-pin'+(p.island?' island':'')});
+  g.appendChild(svgEl('circle',{cx:p.x,cy:p.y,r:15}));
+  g.appendChild(svgEl('text',{'class':'pin-num',x:p.x,y:p.y},p.n));
+  g.appendChild(svgEl('text',{'class':'map-label',x:p.x,y:p.y+31},p.name));
+  g.addEventListener('click',()=>speak("【"+p.name+"】"+p.a));
+  mapSvg.appendChild(g);
+});
+
+// ===== 人物相関図データ =====
+const RELATIONS = [
+  {name:"島津斉彬", role:"恩人・師", color:"#d9a441",
+   a:"島津斉彬(しまづなりあきら)さまは、下級武士のおいを見いだしてくれた名君じゃ。そば近くに取り立て、天下のことを教えてくださった。おいの一生を変えた、いちばんの恩人よ。"},
+  {name:"月照", role:"命の恩・同志", color:"#d9a441",
+   a:"月照(げっしょう)は、志を同じくした京の僧じゃ。幕府に追われ、おいとともに錦江湾の海に身を投げた。月照は亡くなり、おいだけが生き返った。忘れえぬ同志よ。"},
+  {name:"大久保利通", role:"親友→のち対立", color:"#5c7a4a",
+   a:"大久保利通(おおくぼとしみち)は、同じ加治屋町に育った幼なじみの大親友じゃ。ともに維新をなしとげた盟友よ。じゃが最後は征韓論で対立し、たもとを分かってしもうた……。"},
+  {name:"木戸孝允", role:"盟友（長州）", color:"#5c7a4a",
+   a:"木戸孝允(きどたかよし)、もとの桂小五郎(かつらこごろう)じゃ。長州を代表する人物でな、薩長同盟を結んだ相手よ。おい・大久保とともに『維新の三傑』とよばれた仲じゃ。"},
+  {name:"坂本龍馬", role:"薩長同盟の仲立ち", color:"#5c7a4a",
+   a:"坂本龍馬(さかもとりょうま)は、おいと長州の桂を引きあわせ、薩長同盟を仲立ちしてくれた土佐の男じゃ。藩のわくをこえて動く、まことにおもしろい男であった。"},
+  {name:"桐野利秋", role:"忠義の部下", color:"#5c7a4a",
+   a:"桐野利秋(きりのとしあき)、もとの中村半次郎は、おいを深く慕った薩摩の武士じゃ。西南戦争では最後の城山まで、おいと運命をともにした。忠義のあつい男であった。"},
+  {name:"西郷従道", role:"弟（家族）", color:"#c77fa0",
+   a:"西郷従道(さいごうつぐみち)は、おいの弟じゃ。おいが政府を去ったあとも明治政府に残り、海軍をひきいた。最後は兄弟で敵味方に分かれてしもうた……せつない話よ。"},
+  {name:"勝海舟", role:"好敵手", color:"#5b86b3",
+   a:"勝海舟(かつかいしゅう)は、もとは敵がわの人物じゃ。じゃが江戸城の明けわたしを二人で話しあい、ともに百万の江戸を戦火から救うた。立場をこえて信じあえた好敵手よ。"},
+  {name:"島津久光", role:"対立した相手", color:"#b03a2e",
+   a:"島津久光(しまづひさみつ)さまは、斉彬さまの弟じゃ。おいとはどうも気が合わず、二度も島流しにあわせた相手でな。思うたことを言いすぎる、おいの悪いくせも、ひびいたのじゃろう。"}
+];
+
+// ===== 相関図を組み立てる =====
+const relSvg=document.getElementById('rel-map');
+const RCX=350, RCY=285, RX=250, RY=205;
+RELATIONS.forEach((p,i)=>{
+  const ang=(-90 + i*(360/RELATIONS.length))*Math.PI/180;
+  p._x=RCX+RX*Math.cos(ang);
+  p._y=RCY+RY*Math.sin(ang);
+});
+// 線（ノードの下に敷く）
+RELATIONS.forEach(p=>{
+  relSvg.appendChild(svgEl('line',{'class':'rel-line',x1:RCX,y1:RCY,x2:p._x,y2:p._y,stroke:p.color}));
+});
+// 中心（西郷）
+const cg=svgEl('g',{'class':'rel-center'});
+cg.appendChild(svgEl('circle',{cx:RCX,cy:RCY,r:60}));
+cg.appendChild(svgEl('text',{x:RCX,y:RCY-10,'font-size':'23'},'西郷'));
+cg.appendChild(svgEl('text',{x:RCX,y:RCY+20,'font-size':'23'},'隆盛'));
+relSvg.appendChild(cg);
+// 人物ノード
+RELATIONS.forEach((p,i)=>{
+  const g=svgEl('g',{'class':'rel-node'});
+  g.appendChild(svgEl('circle',{'class':'rel-circ',cx:p._x,cy:p._y,r:46,stroke:p.color}));
+  g.appendChild(svgEl('text',{'class':'rel-name',x:p._x,y:p._y},p.name));
+  g.appendChild(svgEl('text',{'class':'rel-role',x:p._x,y:p._y+62},p.role));
+  g.addEventListener('click',()=>selectRel(i));
+  relSvg.appendChild(g);
+});
+function selectRel(i){
+  const nodes=relSvg.querySelectorAll('.rel-node');
+  const lines=relSvg.querySelectorAll('.rel-line');
+  nodes.forEach((n,j)=>{ n.classList.toggle('active',j===i); n.classList.toggle('dim',j!==i); });
+  lines.forEach((l,j)=>{ l.classList.toggle('active',j===i); l.classList.toggle('dim',j!==i); });
+  speak("【"+RELATIONS[i].name+"】"+RELATIONS[i].a);
+}
+
+// ===== クイズ =====
+let quizIdx=0, quizScore=0;
+function startQuiz(){ quizIdx=0; quizScore=0; renderQuiz(); }
+function renderQuiz(){
+  const area=document.getElementById('quiz-area');
+  area.innerHTML='';
+  if(quizIdx>=QUIZ.length){
+    const res=document.createElement('div');
+    res.className='quiz-result';
+    res.innerHTML='ぜんぶ終わったぞ！<br>正解　'+quizScore+' / '+QUIZ.length+'問';
+    area.appendChild(res);
+    const bar=document.createElement('div');bar.className='quiz-bar';bar.style.justifyContent='center';
+    const btn=document.createElement('button');btn.className='btn-next';btn.textContent='もう一回';
+    btn.addEventListener('click',startQuiz);
+    bar.appendChild(btn);area.appendChild(bar);
+    let msg;
+    if(quizScore===QUIZ.length) msg="あっぱれ！　全問正解じゃ。みごとな学びぶりよ。";
+    else if(quizScore>=7) msg="ようできた！　たいしたものじゃ。";
+    else if(quizScore>=4) msg="なかなかじゃ。年表や地図も見て、また挑戦してみよ。";
+    else msg="まだまだこれからよ。年表や地図を見て、もう一度ちょうせんしてくれ。";
+    speak(msg+"（正解　"+quizScore+" / "+QUIZ.length+"問）");
+    return;
+  }
+  const item=QUIZ[quizIdx];
+  const q=document.createElement('div');q.className='quiz-q';
+  q.textContent='第'+(quizIdx+1)+'問　'+item.q;
+  area.appendChild(q);
+  const opts=document.createElement('div');opts.className='quiz-opts';
+  item.o.forEach((opt,i)=>{
+    const b=document.createElement('button');
+    b.className='quiz-opt';b.textContent=opt;
+    b.addEventListener('click',()=>answerQuiz(i,b,opts,item));
+    opts.appendChild(b);
+  });
+  area.appendChild(opts);
+  const bar=document.createElement('div');bar.className='quiz-bar';
+  const prog=document.createElement('div');prog.className='quiz-progress';
+  prog.textContent=(quizIdx+1)+' / '+QUIZ.length+'問　　正解　'+quizScore;
+  const next=document.createElement('button');next.className='btn-next';next.id='quiz-next';
+  next.textContent=(quizIdx===QUIZ.length-1?'けっか ▶':'つぎへ ▶');next.disabled=true;
+  next.addEventListener('click',()=>{quizIdx++;renderQuiz();});
+  bar.appendChild(prog);bar.appendChild(next);
+  area.appendChild(bar);
+}
+function answerQuiz(i,btn,opts,item){
+  opts.querySelectorAll('.quiz-opt').forEach(b=>b.disabled=true);
+  if(i===item.c){
+    btn.classList.add('correct');
+    quizScore++;
+    speak("せいかい！　"+item.a);
+    faceEl.classList.add('seikai');
+  }else{
+    btn.classList.add('wrong');
+    opts.querySelectorAll('.quiz-opt')[item.c].classList.add('correct');
+    speak("おしい！　正しい答えは「"+item.o[item.c]+"」じゃ。"+item.a);
+  }
+  document.getElementById('quiz-next').disabled=false;
+}
+
+
+// 最初のあいさつ
+speak(GREET);
+</script>
+</body>
+</html>
